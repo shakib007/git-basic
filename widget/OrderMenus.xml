@@ -23,7 +23,7 @@ under the License.
         <menu-item name="CreateNewReturn" title="${uiLabelMap.GrowErpNewReturn}" widget-style="buttontext create">
             <link target="returnhead"/>
         </menu-item>
-		<!-- this is another comment-->
+		<!-- this is another comment shakib ludin-->
         <menu-item name="ReturnPDF" title="PDF">
             <condition>
                 <not><if-empty field="returnHeader"/></not>
