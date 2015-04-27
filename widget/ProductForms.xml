@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-form.xsd">
+    <form name="FindProduct" type="single" target="FindProduct" title="" default-map-name="product"
+        header-row-style="header-row" default-table-style="basic-table" focus-field-name="productId">
+        <field name="noConditionFind"><hidden value="Y"/><!-- if this isn't there then with all fields empty no query will be done --></field>
+        <field name="productId" title="${uiLabelMap.ProductProductId}"><text-find/></field>
+        <field name="productName" title="${uiLabelMap.ProductProductName}"><text-find/></field>
+        <field name="searchButton" title="${uiLabelMap.CommonFind}" widget-style="smallSubmit">
+            <submit button-type="button"/>
+        </field>
+    </form>
+    
+    <form name="ListProducts" list-name="listIt" target="" title="" type="list" paginate-target="FindProduct"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/products/FindProductAndCategory.groovy"/>
+        </actions>
+        <field name="productId" sort-field="true">
+            <hyperlink also-hidden="false" description="${productId}" target="EditProduct">
+                <parameter param-name="productId"/>
+            </hyperlink>
+        </field>
+        <field name="productName" sort-field="true"><display/></field>
+        <field name="description" title="${uiLabelMap.ProductShortDescription}" sort-field="true"><display/></field>
+        <field name="productCategories"><display/></field>
+    </form>
+    
+    <form name="EditProductCategory" type="single" target="updateProductCategory" title="" default-map-name="productCategory" 
+        header-row-style="header-row" default-table-style="basic-table" focus-field-name="categoryName">
+        
+        <alt-target use-when="productCategory==null" target="createProductCategory"/>
+        
+        <field use-when="productCategory!=null" name="productCategoryId" title="${uiLabelMap.ProductProductCategoryId}" tooltip="${uiLabelMap.ProductNotModificationRecreationCategory}."><display/></field>
+        <field use-when="productCategory==null&amp;&amp;productCategoryId!=null" name="productCategoryId" title="${uiLabelMap.ProductProductCategoryId}" tooltip="${uiLabelMap.ProductCouldNotFindProductCategoryWithId} [${productCategoryId}]"><text size="20" maxlength="20"/></field>
+        <!-- this to be taken care of with auto-fields-service as soon as it uses entity field info too -->
+        <field use-when="productCategory==null&amp;&amp;productCategoryId==null" name="productCategoryId" title="${uiLabelMap.ProductProductCategoryId}"><text size="20" maxlength="20"/></field>
+        <field name="categoryName" title="${uiLabelMap.ProductProductCategoryName}" widget-style="required" required-field="true" tooltip="${uiLabelMap.CommonRequired}"><text size="30" maxlength="60"/></field>
+        <field name="description" title="${uiLabelMap.ProductProductCategoryDescription}"><text size="60" maxlength="250"/></field>
+        <field name="productCategoryTypeId"><hidden value="CATALOG_CATEGORY"/></field>
+        <field name="primaryParentCategoryId"><hidden/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonSave}" widget-style="buttontext"><submit button-type="button"/></field>
+    </form>
+    
+    <form name="UpdateProductCategoryMemberMini" extends="UpdateProductCategoryMember" extends-resource="component://product/widget/catalog/ProductForms.xml">
+        <field name="quantity"><ignored/></field>
+        <field name="comments"><ignored/></field>
+    </form>
+    
+    <form name="AddProductCategoryMemberMini" extends="AddProductCategoryMember" extends-resource="component://product/widget/catalog/ProductForms.xml">
+        <field name="sequenceNum" title="${uiLabelMap.ProductSequenceNum}" ></field>
+        <field name="quantity"><ignored/></field>
+        <field name="comments"><ignored/></field>
+    </form>
+    
+    <form name="ListCategoryMini" list-name="listIt" target="" title="" type="list" paginate-target="FindCategory"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <set field="entityName" value="ProductCategory"/>
+            <service service-name="performFind" result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields" from-field="requestParameters"/>
+                <field-map field-name="entityName" from-field="entityName"/>
+                <field-map field-name="orderBy" from-field="parameters.sortField"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <field name="productCategoryId" sort-field="true">
+            <hyperlink also-hidden="false" description="${productCategoryId}" target="EditCategory">
+                <parameter param-name="productCategoryId"/>
+            </hyperlink>
+        </field>
+        <field name="categoryName" sort-field="true"><display/></field>
+        <field name="description" sort-field="true"><display/></field>
+    </form>
+    
+    <form name="updateCategoryProductForm" type="list" target="updateCategoryProductMember" title="" list-name="productCategoryMembers"
+        odd-row-style="alternate-row" default-table-style="basic-table">
+        <auto-fields-service service-name="updateProductToCategory"/>
+        <field name="productCategoryId"><hidden/></field>
+        <field name="productId" title="${uiLabelMap.ProductProductId}">
+            <display-entity entity-name="Product" also-hidden="true" description="${productName}">
+                <sub-hyperlink target="EditProduct" description="${productId}" link-style="buttontext"><parameter param-name="productId"/></sub-hyperlink>
+            </display-entity>
+        </field>
+        <field name="fromDate" title="${uiLabelMap.CommonFromDateTime}"><display/></field>
+        <field name="thruDate" title="${uiLabelMap.CommonThruDateTime}"></field>
+        <field name="quantity"><ignored/></field>
+        <field name="comments"><ignored/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonUpdate}" widget-style="smallSubmit"><submit button-type="button"/></field>
+        <field name="deleteLink" title=" " widget-style="buttontext">
+            <hyperlink target="removeProductFromCategory" description="${uiLabelMap.CommonDelete}" also-hidden="false">
+                <parameter param-name="productId"/><parameter param-name="productCategoryId"/><parameter param-name="fromDate"/>
+            </hyperlink>
+        </field>
+    </form>
+    
+    <form name="AddProductCategoryMemberForm" type="single" target="addCategoryProductMember" title="${uiLabelMap.ProductAddProductCategoryMemberFromDate}:"
+        header-row-style="header-row" default-table-style="basic-table">
+        <auto-fields-service service-name="safeAddProductToCategory"/>
+        <field name="productCategoryId"><hidden/></field>
+        <field name="productId" title="${uiLabelMap.ProductProductId}"><lookup target-form-name="LookupProduct"></lookup></field>
+        <field name="fromDate" title="${uiLabelMap.CommonFromDate}" ></field>
+        <field name="thruDate" title="${uiLabelMap.CommonThruDate}" ></field>
+        <field name="sequenceNum" title="${uiLabelMap.ProductSequenceNum}" ></field>
+        <field name="quantity"><ignored/></field>
+        <field name="comments"><ignored/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonAdd}" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+    
+    <form name="ListVATCategory" list-name="listIt" target="" title="" type="list" paginate-target="ListVATCategory"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <set field="requestParameters.productId" value="${productId}"/>
+            <set field="requestParameters.productCategoryTypeId" value="TAX_CATEGORY"/>
+            <set field="entityName" value="ProductCategoryAndMember"/>
+            <service service-name="performFind" result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields" from-field="requestParameters"/>
+                <field-map field-name="entityName" from-field="entityName"/>
+                <field-map field-name="orderBy" from-field="parameters.sortField"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <field name="productCategoryId" sort-field="true">
+            <hyperlink also-hidden="false" description="${productCategoryId}" target="EditCategory">
+                <parameter param-name="productCategoryId"/>
+            </hyperlink>
+        </field>
+        <field name="categoryName" title="VAT/Sales Tax" sort-field="true"><display/></field>
+    </form>
+    
+    <form name="CreateVAT" type="single" target="createProductVAT" title="Create VAT"
+        header-row-style="header-row" default-table-style="basic-table">
+        <field name="productId"><hidden/></field>
+        <field name="taxPercentage" title="VAT/Sales Tax"><text/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonCreate}" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+    
+    <!-- upload CSV file -->
+    <form name="UploadProductCsvFile" type="upload" target="importProductFromCsvFile" title="" header-row-style="header-row" default-table-style="basic-table">
+        <field name="uploadedFile" title="${uiLabelMap.GrowErpUploadFile}"><file/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonUpload} CSV" widget-style="buttontext"><submit button-type="button"/></field>
+    </form>
+    
+    <form name="ExamUploadProductCsvFile"  target="" title="" type="list" list-name="exampleCsvRecords" odd-row-style="alternate-row" 
+        default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <field name="product_id" title="product_id"><display/></field>
+        <field name="product_name" title="product_name"><display/></field>
+        <field name="internal_name" title="internal_name"><display/></field>
+        <field name="description" title="description"><display/></field>
+        <field name="product_type_id" title="product_type_id"><display/></field>
+        <field name="default_price" title="default_price"><display/></field>
+        <field name="list_price" title="list_price"><display/></field>
+        <field name="uom_id" title="uom_id"><display/></field>
+        <field name="product_category_id" title="product_category_id"><display/></field>
+    </form>
+    
+    <form name="UploadCategoryCsvFile" type="upload" target="importCategoryFromCsvFile" title="" header-row-style="header-row" default-table-style="basic-table">
+        <field name="uploadedFile" title="${uiLabelMap.GrowErpUploadFile}"><file/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonUpload} CSV" widget-style="buttontext"><submit button-type="button"/></field>
+    </form>
+    
+    <form name="ExamUploadCategoryCsvFile"  target="" title="" type="list" list-name="exampleCsvRecords" odd-row-style="alternate-row" 
+        default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <field name="product_category_id" title="product_category_id"><display/></field>
+        <field name="category_name" title="category_name"><display/></field>
+    </form>
+    
+    <form name="ProductTypeDropdown" type="single">
+        <field name="productTypeId" title=" ">
+            <drop-down allow-empty="false" no-current-selected-key="${product.productTypeId}">
+                <entity-options description="${description}" entity-name="ProductType">
+                    <entity-constraint name="productTypeId" operator="equals" value="GOOD"/>
+                </entity-options>
+                <entity-options description="${description}" entity-name="ProductType">
+                    <entity-constraint name="productTypeId" operator="equals" value="SERVICE"/>
+                </entity-options>
+                <entity-options description="${description}" entity-name="ProductType">
+                    <entity-constraint name="productTypeId" operator="equals" value="DIGITAL_GOOD"/>
+                </entity-options>
+            </drop-down>
+        </field>
+    </form>
+</forms>

@@ -1,0 +1,1197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<screens xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-screen.xsd">
+    <screen name="main-decorator">
+        <section>
+            <actions>
+                <property-map resource="AccountingUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="ContentUiLabels.xml" map-name="uiLabelMap" global="true"/>
+                <property-map resource="OrderErrorUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="OrderUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="PartyUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="ProductUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="SecurityUiLabels.xml" map-name="uiLabelMap" global="true"/>
+                <property-map resource="SetupUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="TemporalExpressionUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="WebtoolsUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="WorkEffortUiLabels.xml" map-name="uiLabelMap" global="true"/>
+                
+                <property-map resource="GrowErpUiLabels" map-name="uiLabelMap" global="true"/>
+                
+                <set field="layoutSettings.companyName" from-field="uiLabelMap.GrowErpCompanyName" global="true"/>
+                <set field="layoutSettings.companySubtitle" from-field="uiLabelMap.GrowErpCompanySubtitle"/>
+                <set field="activeApp" value="growerp"/>
+                <set field="applicationMenuName" from-field="applicationMenuName" default-value="ConfigurationAppBar"/>
+                <set field="applicationMenuLocation" value="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                <set field="layoutSettings.headerImageUrl" value="/growerpimages/images/growerp-ofbiz.png"/>
+                <set field="customerDetailLink" value="viewprofile?partyId=" global="true"/>
+                <entity-and entity-name="WebAnalyticsConfig" list="layoutSettings.WEB_ANALYTICS">
+                    <field-map field-name="webAnalyticsTypeId" value="BACKEND_ANALYTICS" />
+                </entity-and>
+                <property-to-field resource="general" property="VISUAL_THEME" field="visualThemeId"/>
+                <property-to-field resource="growerp" property="subscriptionEnabled" field="subscriptionEnabled"/>
+                <property-to-field resource="growerp" property="fixedAssetEnabled" field="fixedAssetEnabled"/>
+                <property-to-field resource="growerp" property="webtoolsEnabled" field="webtoolsEnabled"/>
+                <property-to-field resource="growerp" property="tenantmgrEnabled" field="tenantmgrEnabled"/>
+                <property-to-field resource="growerp" property="uomConversionEnabled" field="uomConversionEnabled"/>
+                <property-to-field resource="linkedin" property="useLinkedin" field="useLinkedin"/>
+                <set field="hasTenantComponent" value="${groovy:org.ofbiz.base.component.ComponentConfig.componentExists(&quot;tenant&quot;);}" type="Boolean" global="true"/>
+                <set field="hasScrumComponent" value="${groovy:org.ofbiz.base.component.ComponentConfig.componentExists(&quot;scrum&quot;);}" type="Boolean" global="true"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/CreateMainMenu.groovy"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <set field="productStoreId" from-field="webSite.productStoreId" global="true"/>
+            </actions>
+            <widgets>
+                <include-screen name="ApplicationDecorator" location="component://commonext/widget/CommonScreens.xml"/>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonGrowErpDecorator">
+        <section>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                    <if-has-permission permission="GROWERP" action="_VIEW" />
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">You do not have permission to view this page. ("GROWERP_VIEW" needed)</label>
+                            </fail-widgets>
+                        </section> 
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonCustomerDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="CustomerProfileApp" global="true"/>
+                <set field="layoutSettings.styleSheets[]" value="/backend/images/css/customer.css" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <decorator-section-include name="body"/>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonWebAnalyticsDecorator">
+        <section>
+            <actions>
+                <set field="tabButtonItem" value="WebAnalytics"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonViewWebSiteDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.GrowErpViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonDashboardDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="DashboardAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/plugins/flot/jquery.flot.js" global="true"/>
+                <entity-one value-field="growerpCompany" entity-name="PartyRole">
+                    <field-map field-name="partyId" value="GROWERP-ORG"/>
+                    <field-map field-name="roleTypeId" value="INTERNAL_ORGANIZATIO"/>
+                </entity-one>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <or>
+                                        <if-has-permission permission="GROWERP" action="_CREATE"/>
+                                        <if-has-permission permission="GROWERP" action="_UPDATE"/>
+                                        <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    </or>
+                                    <not><if-has-permission permission="GROWER_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.GrowErpViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonOrderDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/plugins/flot/jquery.flot.js" global="true"/>
+            </actions>
+            <widgets> 
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <or>
+                                        <if-has-permission permission="GROWERP" action="_CREATE"/>
+                                        <if-has-permission permission="GROWERP" action="_UPDATE"/>
+                                        <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    </or>
+                                    <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.GrowErpViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonOrderEntryDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+                <set field="headerItem" value="orderentry"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/SetShoppingCart.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="left-column">
+                        <include-screen name="OrderLeftBar" location="component://growerpbackend/widget/OrderScreens.xml"/>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <platform-specific>
+                                    <html><html-template location="component://growerpbackend/webapp/backend/order/OrderEntryTabBar.ftl"/></html>
+                                </platform-specific>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonOrderCheckoutDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+                <set field="headerItem" value="orderentry"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/SetShoppingCart.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/SetCheckOutTabBar.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <platform-specific>
+                                    <html><html-template location="component://growerpbackend/webapp/backend/order/OrderEntryCheckoutTabBar.ftl"/></html>
+                                </platform-specific>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonOrderReturnDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="pre-body">
+                        <section>
+                            <widgets>
+                                <platform-specific>
+                                    <html>
+                                    </html>
+                                </platform-specific>
+                                <include-menu name="OrderReturnSubTabBar" location="component://growerpbackend/widget/OrderMenus.xml"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonOrderViewDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonShipmentDecorator">
+        <section>
+            <actions>
+                <set field="shipmentId" from-field="parameters.shipmentId"/>
+                <entity-one entity-name="Shipment" value-field="shipment"/>
+                <set field="shipmentId" from-field="shipment.shipmentId" global="true"/>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+                <get-related-one value-field="shipment" to-value-field="facility" relation-name="DestinationFacility"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <if-has-permission permission="FACILITY" action="_VIEW"/>
+                            </condition>
+                            <widgets>
+                                <platform-specific>
+                                    <html><html-template location="component://growerpbackend/webapp/backend/facility/ShipmentTabBar.ftl"/></html>
+                                </platform-specific>
+                                <section>
+                                    <condition>
+                                        <not><if-empty field="shipment"/></not>
+                                    </condition>
+                                    <widgets>
+                                        <label style="h1" text="${uiLabelMap.GrowErpShipmentID}: ${shipment.shipmentId}"/>
+                                        <container>
+                                            <!-- <link style="buttontext" text="${uiLabelMap.ProductGenerateShipmentManifestReport}" target="ShipmentManifest.pdf" target-window="_BLANK">
+                                                <parameter param-name="shipmentId" from-field="shipment.shipmentId"/>
+                                            </link> -->
+                                        </container>
+                                    </widgets>
+                                </section>
+                                <section>
+                                    <condition>
+                                        <and>
+                                            <not><if-empty field="shipment"/></not>
+                                            <not><if-empty field="facility"/></not>
+                                            <if-compare field="shipment.shipmentTypeId" operator="equals" value="PURCHASE_SHIPMENT"/>
+                                        </and>
+                                    </condition>
+                                    <widgets>
+                                        <container>
+                                            <!-- <link style="buttontext" text="${uiLabelMap.ProductReceiveInventory}" target="ReceiveInventory">
+                                                <parameter param-name="shipmentId" from-field="shipment.shipmentId"/>
+                                                <parameter param-name="facilityId" from-field="facility.facilityId"/>
+                                                <parameter param-name="purchaseOrderId" from-field="shipment.primaryOrderId"/>
+                                                <parameter param-name="initialSelected" value="Y"/>
+                                            </link> -->
+                                        </container>
+                                    </widgets>
+                                </section>
+                                <section>
+                                    <condition>
+                                        <and>
+                                            <not><if-empty field="shipment"/></not>
+                                            <not><if-empty field="facility"/></not>
+                                            <if-compare field="shipment.shipmentTypeId" operator="equals" value="PURCHASE_SHIPMENT"/>
+                                            <not><if-empty field="shipment.primaryOrderId"/></not>
+                                        </and>
+                                    </condition>
+                                    <widgets>
+                                        <container>
+                                            <!-- <link style="buttontext" text="${uiLabelMap.ProductReceiveInventoryAgainstPO}" target="ReceiveInventoryAgainstPurchaseOrder">
+                                                <parameter param-name="shipmentId" from-field="shipment.shipmentId"/>
+                                                <parameter param-name="purchaseOrderId" from-field="shipment.primaryOrderId"/>
+                                            </link> -->
+                                        </container>
+                                    </widgets>
+                                </section>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.ProductFacilityViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonProductDecorator">
+        <section>
+            <actions>
+                <set field="headerItem" value="products"/>
+                <property-map resource="PartyUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="OrderUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="productId" from-field="parameters.productId" global="true"/>
+                <entity-one entity-name="Product" value-field="product"/>
+                <set field="product" from-field="product" global="true"/>
+                <set field="applicationMenuName" value="ProductAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/ui/js/jquery.cookie-1.4.0.js" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/plugins/jsTree/jquery.jstree.js" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="left-column">
+                        <include-screen name="leftbar"/>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <or>
+                                        <if-has-permission permission="GROWERP" action="_CREATE"/>
+                                        <if-has-permission permission="GROWERP" action="_UPDATE"/>
+                                        <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    </or>
+                                    <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <actions>
+                                <set field="productId" from-field="parameters.productId"/>
+                                <entity-one entity-name="Product" value-field="product"/>
+                            </actions>
+                            <widgets>
+                                <section>
+                                    <condition>
+                                        <or>
+                                            <not><if-empty field="product"/></not>
+                                            <not><if-empty field="parameters.bypassIfNoProduct"/></not>
+                                        </or>
+                                    </condition>
+                                    <widgets>
+                                        <include-menu name="ProductTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                        <label style="h1">${uiLabelMap[labelTitleProperty]} ${uiLabelMap.CommonFor}: ${product.internalName} [${uiLabelMap.CommonId}:${productId}]  ${${extraFunctionName}}</label>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <section>
+                                            <condition>
+                                                <if-compare operator="not-equals" value="EditProduct" field="tabButtonItem"/>
+                                            </condition>
+                                            <widgets>
+                                                <include-menu name="Product" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                                <include-menu name="ProductSubTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                            </widgets>
+                                        </section>
+                                    </fail-widgets>
+                                </section>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.ProductCatalogViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonCategoryDecorator">
+        <section>
+            <actions>
+                <set field="headerItem" value="categories"/>
+                <set field="applicationMenuName" value="ProductAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/ui/js/jquery.cookie-1.4.0.js" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/plugins/jsTree/jquery.jstree.js" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="left-column">
+                        <include-screen name="leftbar"/>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <or>
+                                        <if-has-permission permission="GROWERP" action="_CREATE"/>
+                                        <if-has-permission permission="GROWERP" action="_UPDATE"/>
+                                        <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    </or>
+                                    <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <actions>
+                                <set field="productCategoryId" from-field="parameters.productCategoryId"/>
+                                <entity-one entity-name="ProductCategory" value-field="productCategory"/>
+                            </actions>
+                            <widgets>
+                                <section>
+                                    <condition>
+                                        <not><if-empty field="productCategory"/></not>
+                                    </condition>
+                                    <widgets>
+                                        <include-menu name="CategoryTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                        <container>
+                                            <label style="h1">${uiLabelMap[labelTitleProperty]} ${uiLabelMap.CommonFor}: ${productCategory.categoryName} [${uiLabelMap.CommonId}:${productCategoryId}]  ${${extraFunctionName}}</label>
+                                        </container>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <section>
+                                            <condition>
+                                                <if-compare operator="not-equals" value="EditCategory" field="tabButtonItem"/>
+                                            </condition>
+                                            <widgets>
+                                                <include-menu name="Category" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                                <include-menu name="CategorySubTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                            </widgets>
+                                        </section>
+                                    </fail-widgets>
+                                </section>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.ProductCatalogViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonPartyDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="PartyAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[]" value="/partymgr/static/partymgr.js" global="true"/>
+                <set field="layoutSettings.styleSheets[]" value="/partymgr/static/partymgr.css" global="true"/>
+                <set field="partyId" from-field="parameters.partyId"/>
+                <entity-one entity-name="Party" value-field="party"/>
+                <entity-one entity-name="Person" value-field="lookupPerson"/>
+                <entity-one entity-name="PartyGroup" value-field="lookupGroup"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <if-has-permission permission="GROWERP_CUSTOMER"/>
+                    </condition>
+                    <widgets>
+                        <decorator-screen name="CommonCustomerDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <section>
+                                    <!-- do check for PARTYMGR, _VIEW permission -->
+                                    <widgets>
+                                        <decorator-section-include name="body"/>
+                                    </widgets>
+                                </section>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                    <fail-widgets>
+                        <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="pre-body">
+                                <section>
+                                    <condition>
+                                        <and>
+                                            <if-service-permission service-name="partyBasePermissionCheck" main-action="VIEW"/>
+                                            <not><if-empty field="party"/></not>
+                                        </and>
+                                    </condition>
+                                    <widgets>
+                                        <include-menu location="component://growerpbackend/widget/PartyMenus.xml" name="ProfileTabBar"/>
+                                    </widgets>
+                                </section>
+                            </decorator-section>
+                            <decorator-section name="body">
+                                <section>
+                                    <condition>
+                                        <if-service-permission service-name="partyBasePermissionCheck" main-action="VIEW"/>
+                                    </condition>
+                                    <widgets>
+                                        <section>
+                                            <condition><not><if-empty field="partyId"/></not></condition>
+                                            <widgets>
+                                                <!-- <include-menu location="component://party/widget/partymgr/PartyMenus.xml" name="ProfileSubTabBar"/> -->
+                                                <container style="clear"/>
+                                                <container style="page-title">
+                                                    <section>
+                                                        <condition>
+                                                            <or>
+                                                                <not><if-empty field="lookupPerson"/></not>
+                                                                <not><if-empty field="lookupGroup"/></not>
+                                                            </or>
+                                                        </condition>
+                                                        <widgets>
+                                                            <label text="${uiLabelMap.PartyTheProfileOf} ${lookupPerson.personalTitle} ${lookupPerson.firstName} ${lookupPerson.middleName} ${lookupPerson.lastName} ${lookupPerson.suffix} ${lookupGroup.groupName} [${partyId}]"/>
+                                                        </widgets>
+                                                        <fail-widgets>
+                                                            <label text="${uiLabelMap.PartyNewUser}"/>
+                                                        </fail-widgets>
+                                                    </section>
+                                                </container>
+                                            </widgets>
+                                        </section>
+                                        <decorator-section-include name="body"/>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <label style="h3">${uiLabelMap.PartyMgrViewPermissionError}</label>
+                                    </fail-widgets>
+                                </section>
+                            </decorator-section>
+                        </decorator-screen>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonConfigurationDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="ConfigurationAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/plugins/flot/jquery.flot.js" global="true"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <if-compare operator="equals" value="tempexpr" field="tabButtonItem"/>
+                    </condition>
+                    <actions>
+                        <set field="headerItem" value="Webtools"/>
+                    </actions>
+                    <widgets>
+                        <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="pre-body">
+                                <section>
+                                    <condition>
+                                        <if-has-permission permission="ENTITY_MAINT"/>
+                                    </condition>
+                                    <widgets>
+                                        <include-menu name="configurationTabBar" location="component://webtools/widget/Menus.xml"/>
+                                    </widgets>
+                                </section>
+                            </decorator-section>
+                            <decorator-section name="body">
+                                <section>
+                                    <!-- do check for WEBTOOLS, _VIEW permission -->
+                                    <condition>
+                                        <if-has-permission permission="ENTITY_MAINT"/>
+                                    </condition>
+                                    <widgets>
+                                        <decorator-section-include name="body"/>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
+                                    </fail-widgets>
+                                </section>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                    <fail-widgets>
+                        <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <section>
+                                    <condition>
+                                        <and>
+                                            <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                            <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                        </and>
+                                    </condition>
+                                    <widgets>
+                                        <decorator-section-include name="body"/>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <label style="h3">${uiLabelMap.GrowErpViewPermissionError}</label>
+                                    </fail-widgets>
+                                    </section>
+                                </decorator-section>
+                            </decorator-screen>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonWebSiteDecorator">
+        <section>
+            <actions>
+                <property-map resource="ContentUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="applicationMenuName" value="WebsiteAppBar" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/images/jquery/plugins/flot/jquery.flot.js" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.GrowErpViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonViewWebSiteDecorator">
+        <section>
+            <actions>
+                <entity-one value-field="webSite" entity-name="WebSite">
+                    <field-map field-name="webSiteId" from-field="parameters.webSiteId"/>
+                </entity-one>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonWebSiteDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <not><if-empty field="webSite"/></not>
+                            </condition>
+                            <widgets>
+                                <label style="h1" text="Web site: ${webSite.siteName} [${webSite.webSiteId}]"/>
+                                <include-menu location="component://growerpbackend/widget/GrowErpMenus.xml" name="WebSite"/>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">There is not a web site [${parameters.webSiteId}].</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonCMSDecorator">
+        <section>
+            <actions>
+                <property-map resource="ContentUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="tabButtonItem" value="CMS"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonViewWebSiteDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.GrowErpViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="leftbar">
+        <section>
+            <widgets>
+                <!--include-screen name="choosecatalog" location="component://growerpbackend/widget/ProductScreens.xml"/-->
+                <include-screen name="keywordsearchbox"  location="component://growerpbackend/widget/ProductScreens.xml"/>
+                <include-screen name="categorytree"/>
+                <include-screen name="miniproductlist" location="component://product/widget/catalog/CommonScreens.xml"/>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="categorytree">
+        <section>
+            <actions>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/products/CategoryTreeWithoutCatalog.groovy"/>
+            </actions>
+            <widgets>
+                <screenlet id="ProductBrowseCategoriesPanel" title="${uiLabelMap.GrowErpCategoriesDragDrop}" collapsible="true">
+                    <container id="EditDocumentTree">
+                        <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/products/CategoryTreeWithoutCatalog.ftl"/></html></platform-specific>
+                    </container>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="EditCategoryTreeAjax">
+        <section>
+            <actions>
+                <property-map resource="GrowErpUiLabels" map-name="uiLabelMap" global="true"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/products/CategoryTreeWithoutCatalog.groovy"/>
+            </actions>
+            <widgets>
+                <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/products/CategoryTreeWithoutCatalog.ftl"/></html></platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonInvoiceDecorator">
+        <section>
+            <actions>
+                <property-map resource="AccountingUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="ProductUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="pre-body">
+                        <section>
+                            <condition>
+                                <if-service-permission service-name="acctgInvoicePermissionCheck" main-action="VIEW"/>
+                            </condition>
+                            <widgets>
+                                <include-menu name="InvoiceTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <if-service-permission service-name="acctgInvoicePermissionCheck" main-action="VIEW"/>
+                            </condition>
+                            <widgets>
+                                <section>
+                                    <condition>
+                                        <and>
+                                            <not><if-empty field="parameters.invoiceId"/></not>
+                                            <if-compare operator="equals" value="invoicePaymentOverview" field="tabButtonItem"/>
+                                        </and>
+                                    </condition>
+                                    <widgets>
+                                        <label style="h2" text="Invoice Application"/><include-menu name="InvoiceSubTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                        <label style="h2" text="Payment Application"/><include-menu name="PaymentSubTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                                        <label style="h1" text="${uiLabelMap[labelTitleProperty]} ${uiLabelMap.CommonFor}: ${invoice.description} [${invoiceId}] [${paymentId}] ${${extraFunctionName}}"/>
+                                    </widgets>
+                                </section>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.AccountingViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonPaymentDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="pre-body">
+                        <section>
+                            <condition>
+                                <if-service-permission service-name="acctgBasePermissionCheck" main-action="VIEW"/>
+                            </condition>
+                            <widgets>
+                                <include-menu name="PaymentTabBar" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <!-- do check for ACCOUNTING, _VIEW permission -->
+                            <condition>
+                                <if-service-permission service-name="acctgBasePermissionCheck" main-action="VIEW"/>
+                            </condition>
+                            <widgets>
+                                <container style="leftclear">
+                                    <label style="h1" text="${uiLabelMap[labelTitleProperty]} ${uiLabelMap.CommonId}:[${paymentId}]  ${${extraFunctionName}}"/>
+                                </container>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3" text="${uiLabelMap.AccountingViewPermissionError}"/>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonFixedAssetDecorator">
+        <section>
+            <actions>
+                <set field="headerItem" value="ListFixedAssets"/>
+                <set field="fixedAssetId" from-field="fixedAsset.fixedAssetId" default-value="${parameters.fixedAssetId}"/>
+                <entity-one entity-name="FixedAsset" value-field="fixedAsset"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="pre-body">
+                        <section>
+                            <condition>
+                                <not><if-empty field="fixedAssetId"/></not>
+                            </condition>
+                            <widgets>
+                                <include-menu name="FixedAssetTabBar" location="component://accounting/widget/AccountingMenus.xml"/>
+                            </widgets>
+                        </section>
+                        <decorator-section-include name="pre-body"/>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <if-service-permission service-name="fixedAssetPermissionCheck" main-action="VIEW"/>
+                            </condition>
+                            <widgets>
+                                <section>
+                                    <condition>
+                                        <not><if-empty field="fixedAssetId"/></not>
+                                    </condition>
+                                    <widgets>
+                                        <label style="h1" text="${uiLabelMap[titleProperty]} ${uiLabelMap.CommonFor} ${fixedAsset.fixedAssetName} [${fixedAssetId}]  ${${extraFunctionName}}"/>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <label style="h1" text="${uiLabelMap[titleProperty]}"/>
+                                    </fail-widgets>
+                                </section>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3" text="${uiLabelMap.AccountingViewPermissionError}"/>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonSubscriptionDecorator">
+        <section>
+            <actions>
+                <set field="headerItem" value="Subscription"/>
+                <set field="applicationMenuName" value="ProductAppBar" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="left-column">
+                        <include-screen name="leftbar"/>
+                    </decorator-section>
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <and>
+                                    <or>
+                                        <if-has-permission permission="GROWERP" action="_CREATE"/>
+                                        <if-has-permission permission="GROWERP" action="_UPDATE"/>
+                                        <if-has-permission permission="GROWERP" action="_VIEW"/>
+                                    </or>
+                                    <not><if-has-permission permission="GROWERP_CUSTOMER"/></not>
+                                </and>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CommonTenantDecorator">
+        <section>
+            <actions>
+                <set field="headerItem" value="tenant"/>
+                <set field="tenantId" from-field="parameters.tenantId" global="true"/>
+                <entity-one value-field="tenant" entity-name="Tenant"/>
+                <set field="tenant" from-field="tenant" global="true"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <if-has-permission permission="TENANTMGR" action="_VIEW"/>
+                    </condition>
+                    <widgets>
+                        <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="pre-body">
+                                <section>
+                                    <widgets>
+                                        <include-menu name="TenantTabBar" location="component://tenant/widget/TenantMenus.xml"/>
+                                    </widgets>
+                                </section>
+                            </decorator-section>
+                            <decorator-section name="body">
+                                <section>
+                                    <widgets>
+                                        <include-menu name="TenantSubTabBar" location="component://tenant/widget/TenantMenus.xml"/>
+                                        <label style="h1" text="${tenant.tenantName} [${tenantId}]"/>
+                                        <decorator-section-include name="body"/>
+                                    </widgets>
+                                </section>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                    <fail-widgets>
+                         <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <section>
+                                    <widgets>
+                                        <label style="h1" text="${tenant.tenantName} [${tenantId}]"/>
+                                        <decorator-section-include name="body"/>
+                                    </widgets>
+                                </section>
+                            </decorator-section>
+                        </decorator-screen>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Webtools">
+        <section>
+            <actions>
+                <set field="titleProperty" value="WebtoolsMainPage"/>
+                <set field="headerItem" value="Webtools"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/configuration/EditConfiguration.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonGrowErpDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <if-compare operator="equals" value="Y" field="webtoolsEnabled"/>
+                            </condition>
+                            <widgets>
+                                <platform-specific><html><html-template location="component://webtools/webapp/webtools/main.ftl"/></html></platform-specific>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="printStart">
+        <section>
+            <condition>
+                <if-compare operator="equals" value="Y" field="webtoolsEnabled"/>
+            </condition>
+            <widgets>
+                <platform-specific><html><html-template location="component://webtools/webapp/webtools/print/printStart.ftl"/></html></platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="printDone">
+        <section>
+            <condition>
+                <if-compare operator="equals" value="Y" field="webtoolsEnabled"/>
+            </condition>
+            <widgets>
+                <platform-specific><html><html-template location="component://webtools/webapp/webtools/print/printDone.ftl"/></html></platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <!-- screen name="scrumCommonDecorator">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="ScrumAppBar" global="true"/>
+                <set field="parameters.scrumCheck" value="scrum" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <if-service-permission service-name="scrumPermissionCheck" main-action="VIEW" resource-description="SCRUM"/>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.ScrumViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen-->
+    
+    <!-- Global decorator for Lookup pop-up windows or layered CSS -->
+    <screen name="LookupDecorator">
+        <section>
+            <condition>
+                <not><if-compare operator="equals" value="Y" field="parameters.ajaxLookup"/></not>
+            </condition>
+            <widgets>
+                <section>
+                    <actions>
+                        <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                        <service service-name="getUserPreferenceGroup" result-map="prefResult">
+                            <field-map field-name="userPrefGroupTypeId" value="GLOBAL_PREFERENCES"/>
+                        </service>
+                        <set field="userPreferences" from-field="prefResult.userPrefMap" global="true"/>
+                        <property-map resource="general" map-name="generalProperties" global="true"/>
+                        <set field="visualThemeId" from-field="userPreferences.VISUAL_THEME" global="true"/>
+                        <service service-name="getVisualThemeResources">
+                            <field-map field-name="visualThemeId"/>
+                            <field-map field-name="themeResources" from-field="layoutSettings"/>
+                        </service>
+                        <set field="layoutSettings" from-field="themeResources" default-value="${layoutSettings}" global="true"/>
+                        <set field="layoutSettings.javaScripts[]" value="/images/fieldlookup.js" global="true"/>
+                        <set field="messagesTemplateLocation" from-field="layoutSettings.VT_MSG_TMPLT_LOC[0]" default-value="component://common/webcommon/includes/messages.ftl"/>
+                    </actions>
+                    <widgets>
+                        <section>
+                        <condition>
+                                <if-compare value="layer" operator="not-equals" field="parameters.presentation"/>
+                        </condition>
+                            <widgets>
+                                <platform-specific><html><html-template location="component://common/webcommon/includes/lookup.ftl" /></html></platform-specific>
+                            </widgets>
+                        </section>
+                        <platform-specific><html><html-template location="${messagesTemplateLocation}"/></html></platform-specific>
+                        <section>
+                            <condition>
+                                <not><if-empty-section section-name="body"/></not>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <screenlet title="${title}" id="findScreenlet" collapsible="true" padded="false">
+                                    <container id="search-options">
+                                        <decorator-section-include name="search-options"/>
+                                    </container>
+                                </screenlet>
+                                <screenlet>
+                                    <container id="search-results">
+                                        <decorator-section-include name="search-results"/>
+                                    </container>
+                                </screenlet>
+                            </fail-widgets>
+                        </section>
+                        <section>
+                        <condition>
+                            <if-compare value="layer" operator="not-equals" field="parameters.presentation"/>
+                        </condition>
+                            <widgets>
+                                <platform-specific><html><html-template location="component://common/webcommon/includes/lookupFooter.ftl"/></html></platform-specific>
+                            </widgets>
+                        </section>
+                    </widgets>
+                </section>
+            </widgets>
+            <fail-widgets>
+                <section>
+                    <actions>
+                        <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                        <set field="searchType" from-field="parameters.searchType" default-value="${searchType}"/>
+                        <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/FindAutocompleteOptions.groovy"/>
+                    </actions>
+                    <widgets>
+                        <decorator-screen name="AjaxGlobalDecorator">
+                            <decorator-section name="body">
+                                <platform-specific>
+                                    <html>
+                                        <html-template location="component://common/webcommon/includes/ajaxAutocompleteOptions.ftl"/>
+                                    </html>
+                                </platform-specific>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                </section>
+            </fail-widgets>
+        </section>
+    </screen>
+    
+    <screen name="AjaxGlobalDecorator">
+        <section>
+            <actions>
+                <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true" />
+            </actions>
+            <widgets>
+                <platform-specific>
+                    <html>
+                        <html-template location="component://common/webcommon/includes/htmlheader-for-ajax.ftl" />
+                    </html>
+                </platform-specific>
+                <decorator-section-include name="body" />
+                <platform-specific>
+                    <html>
+                        <html-template location="component://common/webcommon/includes/htmlfooter-for-ajax.ftl" />
+                    </html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+</screens>

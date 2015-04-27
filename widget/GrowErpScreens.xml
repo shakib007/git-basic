@@ -1,0 +1,887 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<screens xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-screen.xsd">
+    <screen name="main">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpDashboard"/>
+                <entity-one value-field="growerpCompany" entity-name="PartyRole">
+                    <field-map field-name="partyId" value="GROWERP-ORG"/>
+                    <field-map field-name="roleTypeId" value="INTERNAL_ORGANIZATIO"/>
+                </entity-one>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <if-has-permission permission="GROWERP_CUSTOMER"/>
+                    </condition>
+                    <actions>
+                        <set field="titleProperty" value="Customer Profile"/>
+                    </actions>
+                    <widgets>
+                        <include-screen name="CustomerProfile"/>
+                    </widgets>
+                    <fail-widgets>
+                        <section>
+                            <condition>
+                                <if-empty field="growerpCompany"/>
+                            </condition>
+                            <actions>
+                                <set field="headerItem" value="setup"/>
+                            </actions>
+                            <!-- Setup section -->
+                            <widgets>
+                                <include-screen name="SetupOrganization"/>
+                            </widgets>
+                            <!-- End of setup -->
+                            <fail-widgets>
+                                <section>
+                                    <condition>
+                                        <and>
+                                           <or>
+                                               <if-has-permission permission="SCRUM_ADMIN"/>
+                                               <if-has-permission permission="SCRUM_VIEW"/>
+                                           </or>
+                                           <not>
+                                                 <if-has-permission permission="ENTITY_MAINT"/>
+                                           </not>
+                                       </and>
+                                    </condition>
+                                    <widgets>
+                                        <screenlet>
+                                            <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/includes/CheckPermission.ftl"/></html></platform-specific>
+                                        </screenlet>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <section>
+                                            <widgets>
+                                                <include-screen name="Dashboard"/>
+                                            </widgets>
+                                        </section>
+                                    </fail-widgets>
+                                </section>
+                            </fail-widgets>
+                        </section>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Dashboard">
+        <section>
+            <actions>
+                <set field="headerItem" value="dashboard"/><!-- this highlights the selected menu-item with name "main" -->
+                <set field="titleProperty" value="GrowErpDashboard"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/dashboard/Dashboard.groovy"/>
+                <entity-one value-field="growerpCompany" entity-name="PartyRole">
+                    <field-map field-name="partyId" value="GROWERP-ORG"/>
+                    <field-map field-name="roleTypeId" value="INTERNAL_ORGANIZATIO"/>
+                </entity-one>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <if-empty field="growerpCompany"/>
+                    </condition>
+                    <actions>
+                        <set field="headerItem" value="setup"/>
+                    </actions>
+                    <widgets>
+                        <include-screen name="SetupOrganization"/>
+                    </widgets>
+                    <fail-widgets>
+                        <decorator-screen name="CommonDashboardDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <section>
+                                    <condition>
+                                        <or>
+                                            <if-has-permission permission="GROWERP_ADMIN"/>
+                                            <if-has-permission permission="GROWERP_USER"/>
+                                        </or>
+                                    </condition>
+                                    <widgets>
+                                        <screenlet title="${uiLabelMap.GrowErpDashboard}">
+                                            <container style="lefthalf">
+                                                <screenlet title="">
+                                                    <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/dashboard/Dashboard.ftl"/></html></platform-specific>
+                                                </screenlet>
+                                                <screenlet title="">
+                                                    <include-form name="salesDay" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                    <include-form name="salesWeek" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                    <include-form name="salesMonth" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                    <include-form name="salesYear" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                                <!-- <screenlet title="${uiLabelMap.GrowErpRevenue}">
+                                                    <include-form name="salesRevenue" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                                <screenlet title="${uiLabelMap.GrowErpExpenses}">
+                                                    <include-form name="showExpenses" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                                <screenlet title="${uiLabelMap.GrowErpProfitAndCashflow}">
+                                                    <include-form name="showProfitAndCashflow" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet> -->
+                                            </container>
+                                            <container style="righthalf">
+                                                <!-- <screenlet title="${uiLabelMap.GrowErpNumberOfProducts}">
+                                                    <include-form name="numberOfProducts" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                                <screenlet title="${uiLabelMap.GrowErpMostPopularProducts} / ${uiLabelMap.GrowErpNumberOfProducts} ${numberOfProducts}">
+                                                    <include-form name="mostPopularProducts" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                                <screenlet title="${uiLabelMap.GrowErpNumberOfCustomers}">
+                                                    <include-form name="numberOfCustomers" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet> -->
+                                                <screenlet title="${uiLabelMap.GrowErpTopTenOrdering} / ${uiLabelMap.GrowErpNumberOfCustomers} ${partyRoleCount}">
+                                                    <include-form name="topTenOrdering" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                                <screenlet title="${uiLabelMap.GrowErpInvoiceList}">
+                                                    <include-form name="ListInvoice" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                                </screenlet>
+                                            </container>
+                                        </screenlet>
+                                    </widgets>
+                                    <fail-widgets>
+                                        <label style="h3">You do not have permission to view this page. ("GROWERP_ADMIN" or "GROWERP_USER" needed)</label>
+                                    </fail-widgets>
+                                </section>
+                            </decorator-section>
+                        </decorator-screen>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="SetupOrganization">
+        <section>
+            <actions>
+                <set field="headerItem" value="setup"/><!-- this highlights the selected menu-item with name "setup" -->
+                <set field="titleProperty" value="GrowErpSetup"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonDashboardDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <screenlet title="${uiLabelMap.GrowErpInitialSetup}">
+                            <include-form name="SetupOrganizationLayer" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                        </screenlet>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Configuration">
+        <section>
+            <actions>
+                <set field="titleProperty" value="CommonConfiguration"/>
+                <set field="headerItem" value="configuration"/><!-- this highlights the selected menu-item with name "configuration" -->
+                <set field="applicationMenuName" value="ConfigurationAppBar" global="true"/>
+                <property-map resource="TemporalExpressionUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="WebtoolsUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="SecurityUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/configuration/EditConfiguration.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonConfigurationDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <or>
+                                    <if-has-permission permission="GROWERP_ADMIN"/>
+                                    <if-has-permission permission="GROWERP_USER"/>
+                                </or>
+                            </condition>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.CommonConfiguration}">
+                                    <include-form name="SettingConfiguration" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">You do not have permission to view this page. ("GROWERP_ADMIN" or "GROWERP_USER" needed)</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="UploadProductCsvFile">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpImportProduct"/>
+                <set field="tabButtonItem" value="UploadProductFile"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/products/UploadProductCsvFile.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonProductDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <or>
+                                    <if-has-permission permission="GROWERP_ADMIN"/>
+                                    <if-has-permission permission="GROWERP_USER"/>
+                                </or>
+                            </condition>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.GrowErpUploadFile}">
+                                    <include-form name="UploadProductCsvFile" location="component://growerpbackend/widget/ProductForms.xml"/>
+                                </screenlet>
+                                <screenlet title="${uiLabelMap.GrowErpExampleData}">
+                                    <include-form name="ExamUploadProductCsvFile" location="component://growerpbackend/widget/ProductForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">You do not have permission to view this page. ("GROWERP_ADMIN" or "GROWERP_USER" needed)</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="UploadCategoryCsvFile">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpImportCategory"/>
+                <set field="tabButtonItem" value="UploadCategoryFile"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/products/UploadCategoryCsvFile.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonCategoryDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <or>
+                                    <if-has-permission permission="GROWERP_ADMIN"/>
+                                    <if-has-permission permission="GROWERP_USER"/>
+                                </or>
+                            </condition>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.GrowErpUploadFile}">
+                                    <include-form name="UploadCategoryCsvFile" location="component://growerpbackend/widget/ProductForms.xml"/>
+                                </screenlet>
+                                <screenlet title="${uiLabelMap.GrowErpExampleData}">
+                                    <include-form name="ExamUploadCategoryCsvFile" location="component://growerpbackend/widget/ProductForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">You do not have permission to view this page. ("GROWERP_ADMIN" or "GROWERP_USER" needed)</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="PersonImportCsvFile">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpImportPerson"/>
+                <set field="tabButtonItem" value="PersonUploadFile"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/party/ExamplePartyCSV.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonPartyDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.GrowErpUploadFile}">
+                                    <include-form name="PersonUploadCsvFile" location="component://growerpbackend/widget/PartyForms.xml"/>
+                                </screenlet>
+                                <screenlet title="${uiLabelMap.GrowErpExampleData}">
+                                    <include-form name="ExamplePersonCsvFile" location="component://growerpbackend/widget/PartyForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ListWebSites">
+        <section>
+            <actions>
+                <entity-condition list="webSites" entity-name="WebSite"/>
+                <set field="webSiteSize" value="${groovy:webSites.size()}" default-value="0" type="Integer"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <if-compare field="webSiteSize" operator="greater" value="1" type="Integer"/>
+                    </condition>
+                    <widgets>
+                        <decorator-screen name="CommonWebSiteDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <screenlet title="Web Sites">
+                                    <include-form name="ListWebSites" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                                </screenlet>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                    <fail-widgets>
+                      <section>
+                          <actions>
+                              <set field="parameters.webSiteId" from-field="webSites[0].webSiteId"/>
+                          </actions>
+                          <widgets>
+                              <include-screen name="CMSMain" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                          </widgets>
+                      </section> 
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CMSMain">
+        <section>
+            <actions>
+                <set field="titleProperty" value="ContentCMS"/>
+                <set field="webSiteId" from-field="parameters.webSiteId"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/content/ContentTree.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonCMSDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <or>
+                                    <if-has-permission permission="GROWERP_ADMIN"/>
+                                    <if-has-permission permission="GROWERP_USER"/>
+                                </or>
+                            </condition>
+                            <widgets>
+                                <section>
+                                    <condition>
+                                        <not>
+                                            <if-empty field="contentIds"/>
+                                        </not>
+                                    </condition>
+                                <widgets>
+                                    <container id="cmsnav" style="left">
+                                        <include-screen name="CMSNav"/>
+                                        <include-screen name="CMSTheme"/>
+                                    </container>
+                                    <container id="cmsmain" style="leftonly">
+                                        <include-screen name="CMSContent"/>
+                                    </container>
+                                </widgets>
+                                <fail-widgets>
+                                    <container id="norender" style="tableheadtext">
+                                        <label text="${uiLabelMap.ContentCMSNotExist}"/>
+                                    </container>
+                                </fail-widgets>
+                                </section>
+                            </widgets>
+                            <fail-widgets>
+                               <label style="h3">You do not have permission to view this page. ("GROWERP_ADMIN" or "GROWERP_USER" needed)</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CMSNav">
+        <section>
+            <actions>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/content/ContentTree.groovy"/>
+                <set field="language" from-field="userLogin.lastLocale" default-value="en"/>
+            </actions>
+            <widgets>
+                <screenlet title="${uiLabelMap.GrowErpCMSNav}">
+                    <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/contents/CMSNav.ftl"/></html></platform-specific>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CMSTheme">
+        <section>
+            <actions>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/content/ContentTree.groovy"/>
+                <set field="language" from-field="userLogin.lastLocale" default-value="en"/>
+            </actions>
+            <widgets>
+                <screenlet title="Cms Theme">
+                    <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/contents/CMStheme.ftl"/></html></platform-specific>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="FindWebAnalyticsConfigs">
+        <section>
+            <actions>
+                <set field="titleProperty" value="CatalogWebAnalytics"/>
+                <set field="webAnalyticsConfigCtx" from-field="parameters"/>
+                <set field="parentTypeId" value=""/>
+                <set field="webSiteId" from-field="parameters.webSiteId"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <set field="viewIndex" from-field="parameters.VIEW_INDEX" type="Integer" default-value="0"/>
+                <set field="viewSize" from-field="parameters.VIEW_SIZE" type="Integer" default-value="10"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonWebAnalyticsDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <or>
+                                    <if-has-permission permission="GROWERP_ADMIN"/>
+                                    <if-has-permission permission="GROWERP_USER"/>
+                                </or>
+                            </condition>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.CatalogWebAnalytics}">
+                                    <include-form name="ListWebAnalyticsConfig" location="component://growerpbackend/widget/GrowErpWebAnalyticsForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">You do not have permission to view this page. ("GROWERP_ADMIN" or "GROWERP_USER" needed)</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="EditWebAnalyticsConfig">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleEditWebAnalyticsConfigs"/>
+                <set field="tabButtonItem" value="WebAnalytics"/>
+                <set field="tabButtonItem2" value="EditWebAnalyticsConfig"/>
+                <set field="webSiteId" from-field="parameters.webSiteId"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <set field="webAnalyticsTypeId" from-field="parameters.webAnalyticsTypeId"/>
+                <entity-one entity-name="WebAnalyticsConfig" value-field="webAnalyticsConfig" auto-field-map="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonWebAnalyticsDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <screenlet title="${uiLabelMap.PageTitleEditWebAnalyticsConfigs}">
+                            <include-form name="EditWebAnalyticsConfig" location="component://content/widget/website/WebAnalyticsForms.xml"/>
+                        </screenlet>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CMSContent">
+        <section>
+            <actions>
+                <property-map resource="GrowErpUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="ContentUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="WorkEffortUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="contentAssocTypeId" from-field="parameters.contentAssocTypeId"/>
+                <set field="dataResourceTypeId" from-field="parameters.dataResourceTypeId"/>
+                <set field="contentIdFrom" from-field="parameters.contentIdFrom"/>
+                <set field="webSiteId" from-field="parameters.webSiteId"/>
+                <set field="contentId" from-field="parameters.contentId"/>
+                <set field="mimeTypeId" value="text/html"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <entity-one entity-name="Content" value-field="content"/>
+                <entity-one entity-name="DataResource" value-field="dataResource">
+                    <field-map field-name="dataResourceId" from-field="content.dataResourceId"/>
+                </entity-one>
+                <entity-one entity-name="ElectronicText" value-field="dataText">
+                    <field-map field-name="dataResourceId" from-field="content.dataResourceId"/>
+                </entity-one>
+                
+                <set field="parameters.fromDate" type="Timestamp" from-field="parameters.fromDate"/>
+                <entity-condition list="assocs" entity-name="ContentAssoc">
+                    <condition-list>
+                        <condition-expr field-name="contentId" from-field="parameters.contentIdFrom"/>
+                        <condition-expr field-name="contentIdTo" from-field="parameters.contentId"/>
+                        <condition-expr field-name="fromDate" from-field="parameters.fromDate" ignore-if-empty="true"/>
+                        <condition-expr field-name="contentAssocTypeId" from-field="parameters.contentAssocTypeId" ignore-if-empty="true"/>
+                    </condition-list>
+                    <order-by field-name="-fromDate"/>
+                </entity-condition>
+                <set field="assoc" value="${assocs[0]}"/>
+                <entity-and entity-name="ContentPurpose" list="currentPurposes">
+                    <field-map field-name="contentId" from-field="contentId"/>
+                </entity-and>
+                <entity-condition entity-name="ContentPurposeType" list="purposeTypes">
+                    <order-by field-name="description"/>
+                </entity-condition>
+                <entity-and entity-name="DataResource" list="templates">
+                    <field-map field-name="dataCategoryId" value="TEMPLATE"/>
+                    <order-by field-name="dataResourceName"/>
+                </entity-and>
+                <entity-and entity-name="StatusItem" list="statuses">
+                    <field-map field-name="statusTypeId" value="CONTENT_STATUS"/>
+                    <order-by field-name="sequenceId"/>
+                </entity-and>
+                <entity-condition entity-name="DataTemplateType" list="templateTypes"/>
+                <entity-and entity-name="Content" list="decorators">
+                    <field-map field-name="contentTypeId" value="DECORATOR"/>
+                </entity-and>
+            </actions>
+            <widgets>
+                <container id="cmscontent" style="no-clear">
+                    <screenlet title="${uiLabelMap.GrowErpCMSContent}">
+                        <platform-specific>
+                            <html>
+                                <html-template location="component://growerpbackend/webapp/backend/contents/CMSContent.ftl"/>
+                            </html>
+                        </platform-specific>
+                    </screenlet>
+               </container>
+            </widgets>
+        </section>
+    </screen>
+    
+    <!-- Frontend Theme in Cms -->
+    <screen name="ListVisualFrontendThemes">
+        <section>
+            <actions>
+                <property-map resource="GrowErpUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="ContentUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="WorkEffortUiLabels" map-name="uiLabelMap" global="true"/>
+                
+                <set field="title" value="${uiLabelMap.CommonVisualThemes}"/>
+                <set field="parameters.presentation" value="window"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <set field="visualThemeSetId" from-field="webSite.visualThemeSetId" default-value="GROWERPFRONTEND" />
+                <entity-condition entity-name="VisualTheme" list="visualThemes">
+                    <condition-expr field-name="visualThemeSetId" from-field="visualThemeSetId" />
+                </entity-condition>
+                <service service-name="getFrontendUserPreferenceGroup" result-map="getFrontendUserPreferenceGroupOutMap">
+                    <field-map field-name="userPrefGroupTypeId" value="GLOBAL_PREFERENCES"/>
+                    <field-map field-name="userPrefLoginId" value="_GROWERP_FE_NA_"/>
+                </service>
+                <set field="visualThemeId" from-field="getFrontendUserPreferenceGroupOutMap.userPrefMap.VISUAL_FE_THEME" />
+            </actions>
+            <widgets>
+                <platform-specific>
+                    <html>
+                        <html-template location="component://growerpbackend/webapp/backend/includes/ListVisualFrontendThemes.ftl"/>
+                    </html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <!--Backend Theme in CMS-->
+    <screen name="ListVisualThemes">
+        <section>
+            <actions>
+                <set field="title" value="${uiLabelMap.CommonVisualThemes}"/>
+                <set field="parameters.presentation" value="window"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <set field="visualThemeSetId" from-field="webSite.visualThemeSetId" default-value="BACKOFFICE" />
+                <entity-condition entity-name="VisualTheme" list="visualThemes">
+                    <condition-expr field-name="visualThemeSetId" from-field="visualThemeSetId" />
+                </entity-condition>
+            </actions>
+            <widgets>
+              <decorator-screen name="LookupDecorator" location="component://growerpbackend/widget/GrowErpScreens.xml">
+                <decorator-section name="body">
+                    <platform-specific>
+                        <html>
+                            <html-template location="component://growerpbackend/webapp/backend/includes/ListVisualThemes.ftl"/>
+                        </html>
+                    </platform-specific>
+                </decorator-section>
+              </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="LookupDecorator">
+        <section>
+            <condition>
+                <not><if-compare operator="equals" value="Y" field="parameters.ajaxLookup"/></not>
+            </condition>
+            <widgets>
+                <section>
+                    <actions>
+                        <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                        <service service-name="getUserPreferenceGroup" result-map="prefResult">
+                            <field-map field-name="userPrefGroupTypeId" value="GLOBAL_PREFERENCES"/>
+                        </service>
+                        <set field="userPreferences" from-field="prefResult.userPrefMap" global="true"/>
+                        <property-map resource="general" map-name="generalProperties" global="true"/>
+                        <set field="visualThemeId" from-field="userPreferences.VISUAL_THEME" global="true"/>
+                        <service service-name="getVisualThemeResources">
+                            <field-map field-name="visualThemeId"/>
+                            <field-map field-name="themeResources" from-field="layoutSettings"/>
+                        </service>
+                        <set field="layoutSettings" from-field="themeResources" default-value="${layoutSettings}" global="true"/>
+                        <set field="layoutSettings.javaScripts[]" value="/images/fieldlookup.js" global="true"/>
+                        <set field="messagesTemplateLocation" from-field="layoutSettings.VT_MSG_TMPLT_LOC[0]" default-value="component://common/webcommon/includes/messages.ftl"/>
+                    </actions>
+                    <widgets>
+                        <section>
+                        <condition>
+                                <if-compare value="layer" operator="not-equals" field="parameters.presentation"/>
+                        </condition>
+                            <widgets>
+                                <platform-specific><html><html-template location="component://common/webcommon/includes/lookup.ftl" /></html></platform-specific>
+                            </widgets>
+                        </section>
+                        <platform-specific><html><html-template location="${messagesTemplateLocation}"/></html></platform-specific>
+                        <section>
+                            <condition>
+                                <not><if-empty-section section-name="body"/></not>
+                            </condition>
+                            <widgets>
+                                <decorator-section-include name="body"/>
+                            </widgets>
+                            <fail-widgets>
+                                <screenlet title="${title}" id="findScreenlet" collapsible="true" padded="false">
+                                    <container id="search-options">
+                                        <decorator-section-include name="search-options"/>
+                                    </container>
+                                </screenlet>
+                                <screenlet>
+                                    <container id="search-results">
+                                        <decorator-section-include name="search-results"/>
+                                    </container>
+                                </screenlet>
+                            </fail-widgets>
+                        </section>
+                        <section>
+                        <condition>
+                            <if-compare value="layer" operator="not-equals" field="parameters.presentation"/>
+                        </condition>
+                            <widgets>
+                                <platform-specific><html><html-template location="component://common/webcommon/includes/lookupFooter.ftl"/></html></platform-specific>
+                            </widgets>
+                        </section>
+                    </widgets>
+                </section>
+            </widgets>
+            <fail-widgets>
+                <section>
+                    <actions>
+                        <property-map resource="CommonUiLabels" map-name="uiLabelMap" global="true"/>
+                        <set field="searchType" from-field="parameters.searchType" default-value="${searchType}"/>
+                        <script location="component://common/webcommon/WEB-INF/actions/includes/FindAutocompleteOptions.groovy"/>
+                    </actions>
+                    <widgets>
+                        <decorator-screen name="AjaxGlobalDecorator">
+                            <decorator-section name="body">
+                                <platform-specific>
+                                    <html>
+                                        <html-template location="component://common/webcommon/includes/ajaxAutocompleteOptions.ftl" />
+                                    </html>
+                                </platform-specific>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                </section>
+            </fail-widgets>
+        </section>
+    </screen>
+    
+    <screen name="CustomerProfile">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpCustomerProfile"/>
+                <set field="webSiteId" from-field="parameters.webSiteId"/>
+                <set field="MainColumnStyle" value="content"/>
+                <set field="parameters.partyId" from-field="userLogin.partyId"/>
+                <set field="partyId" from-field="userLogin.partyId"/>
+                <entity-one entity-name="Party" value-field="party"/>
+                <entity-one entity-name="Person" value-field="person"/>
+                <entity-one entity-name="PartyGroup" value-field="partyGroup"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonCustomerDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <container style="lefthalf">
+                            <include-screen name="Party" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                            <include-screen name="Contact" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                            <include-screen name="OrderList" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                            <include-screen name="CreateAndUpdateAccessInfo" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                        </container>
+                        <container style="righthalf">
+                            <include-screen name="UserLogin" location="component://growerpbackend/widget/PartyScreens.xml"/>
+                            <include-screen name="FindInvoices" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                            <include-screen name="FindPayments" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                            <include-screen name="FindSubscription" location="component://growerpbackend/widget/GrowErpScreens.xml"/>
+                        </container>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Party">
+        <section>
+            <actions>
+                <property-map resource="PartyUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="parameters.partyId" from-field="parameters.partyId" default-value="${userLogin.partyId}"/>
+                <entity-and entity-name="PartyNameHistory" list="partyNameHistoryList">
+                    <field-map field-name="partyId" from-field="parameters.partyId"/>
+                    <order-by field-name="-changeDate"/>
+                </entity-and>
+                <entity-one entity-name="PartyAndGroup" value-field="lookupGroup">
+                    <field-map field-name="partyId" from-field="parameters.partyId"/><!-- is required -->
+                </entity-one>
+                <entity-one entity-name="PartyAndPerson" value-field="lookupPerson">
+                    <field-map field-name="partyId" from-field="parameters.partyId"/><!-- is required -->
+                </entity-one>
+                <entity-and list="partyContentList" entity-name="PartyContent">
+                    <field-map field-name="partyId" from-field="parameters.partyId"/>
+                    <field-map field-name="partyContentTypeId" value="LGOIMGURL"/>
+                    <order-by field-name="-fromDate"/>
+                </entity-and>
+                <set field="partyContentId" from-field="partyContentList[0].contentId"/>
+                <set field="partyContent" value="${groovy: partyContentId!=null?&quot;/content/control/stream?contentId=&quot; + partyContentId : &quot;&quot;}"/>
+                <set field="partyGroupLogoLinkUrl" from-field="partyContent" default-value="${lookupGroup.logoImageUrl}" global="true"/>
+                <set field="personalImage" from-field="partyContent"/>
+            </actions>
+            <widgets>
+                <screenlet title="${uiLabelMap.PartyPersonalInformation}" navigation-menu-name="personUpdate" id="PartyPersonalInformationPanel" >
+                    <include-menu name="PersonUpdate" location="component://growerpbackend/widget/GrowErpMenus.xml"/>
+                    <include-form name="ViewPartyPerson" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Contact">
+        <section>
+            <actions>
+                <property-map resource="PartyUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="partyId" from-field="parameters.partyId" default-value="${userLogin.partyId}"/>
+                <script location="component://party/webapp/partymgr/WEB-INF/actions/party/GetContactMechs.groovy"/>
+                <script location="component://party/webapp/partymgr/WEB-INF/actions/party/GetUserLoginPrimaryEmail.groovy"/>
+            </actions>
+            <widgets>
+                <platform-specific>
+                    <html>
+                        <html-template location="component://growerpsaas/webapp/growerpsaas/customer/Contact.ftl"/>
+                    </html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderList">
+        <section>
+            <actions>
+                <property-map resource="OrderUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="GrowErpUiLabels" map-name="uiLabelMap" global="true"/>
+            </actions>
+            <widgets>
+                <screenlet title="Order Information" navigation-menu-name="personUpdate" id="PartyPersonalInformationPanel">
+                    <include-form name="ListOrder" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                </screenlet>
+            </widgets>
+         </section>
+    </screen>
+    
+    <screen name="FindInvoices">
+        <section>
+            <actions>
+                <property-map resource="AccountingUiLabels" map-name="uiLabelMap" global="true"/>
+            </actions>
+            <widgets>
+                <screenlet title="Invoice Information" navigation-menu-name="personUpdate" id="PartyPersonalInformationPanel">
+                    <include-form name="ListInvoices"  location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="FindPayments">
+        <section>
+            <widgets>
+                <screenlet title="Payment Information" navigation-menu-name="personUpdate" id="PartyPersonalInformationPanel">
+                    <include-form name="ListPayments"  location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="FindSubscription">
+        <section>
+            <actions>
+            </actions>
+            <widgets>
+                <screenlet title="Subscription Information" navigation-menu-name="personUpdate" id="PartyPersonalInformationPanel">
+                    <include-form name="ListFindSubscription" location="component://growerpbackend/widget/GrowErpForms.xml"/>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="EditPerson">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleEditPersonalInformation"/>
+                <set field="tabButtonItem" value="viewprofile"/>
+                <set field="headerItem" value="find"/>
+                <set field="labelTitleProperty" value="PageTitleEditPersonalInformation"/>
+                <set field="donePage" from-field="parameters.DONE_PAGE" default-value="viewprofile"/>
+                <set field="partyId" from-field="parameters.partyId"/>
+                <entity-one entity-name="PartyAndPerson" value-field="personInfo"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonCustomerDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <container id="viewprofile">
+                            <screenlet title="${uiLabelMap.PageTitleEditPersonalInformation}">
+                                <include-form name="EditCustomer" location="component://growerpbackend/widget/PartyForms.xml"/>
+                            </screenlet>
+                        </container>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CreateAndUpdateAccessInfo">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleCustomerProfile"/>
+                <set field="webSiteId" from-field="parameters.webSiteId"/>
+                <entity-one entity-name="PartyAttribute" value-field="partyAttribute">
+                    <field-map field-name="partyId" from-field="parameters.partyId"/>
+                    <field-map field-name="attrName" value="ACCESS_INFORMATION"/>
+                </entity-one>
+            </actions>
+            <widgets>
+                <screenlet title="More Information" id="AccessInformation">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/customers/AccessInformation.ftl"/></html>
+                        </platform-specific>
+                </screenlet>
+            </widgets>
+        </section>
+    </screen>
+</screens>

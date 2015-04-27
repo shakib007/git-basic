@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<screens xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-screen.xsd">
+    <screen name="FindShipment">
+        <section>
+            <actions>
+                <set field="titleProperty" value="ProductFindShipment"/>
+                <set field="headerItem" value="shipment"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/FindShipment.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonShipmentDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/facility/FindShipment.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ViewShipment">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleViewShipment"/>
+                <set field="headerItem" value="shipment"/>
+                <set field="tabButtonItem" value="ViewShipment"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/ViewShipment.groovy"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/EditShipmentItems.groovy"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/EditShipmentPackages.groovy"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/EditShipmentRouteSegments.groovy"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="shipment"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <decorator-screen name="CommonShipmentDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <platform-specific>
+                                    <html><html-template location="component://growerpbackend/webapp/backend/facility/ViewShipmentInfo.ftl"/></html>
+                                </platform-specific>
+                                <screenlet id="shipmentItemPanel" title="${uiLabelMap.PageTitleViewShipmentItemInfo}">
+                                    <platform-specific>
+                                        <html><html-template location="component://growerpbackend/webapp/backend/facility/ViewShipmentItemInfo.ftl"/></html>
+                                    </platform-specific>
+                                </screenlet>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                    <fail-widgets>
+                        <include-screen name="FindShipment"/>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="CreateShipment">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpCreateShipment"/>
+                <set field="headerItem" value="shipment"/>
+                <set field="tabButtonItem" value="EditShipment"/>
+                <set field="shipmentTypeId" from-field="parameters.shipmentTypeId"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/EditShipment.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonShipmentDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <include-form name="EditShipment" location="component://growerpbackend/widget/FacilityForms.xml"/>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="EditShipment">
+        <section>
+            <actions>
+                <set field="titleProperty" value="ProductEditShipment"/>
+                <set field="headerItem" value="shipment"/>
+                <set field="tabButtonItem" value="EditShipment"/>
+                <set field="shipmentTypeId" from-field="parameters.shipmentTypeId"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/EditShipment.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonShipmentDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <include-form name="EditShipment" location="component://growerpbackend/widget/FacilityForms.xml"/>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="AddItemsFromInventory">
+        <section>
+            <actions>
+                <property-map resource="OrderUiLabels" map-name="uiLabelMap" global="true"/>
+                <property-map resource="ManufacturingUiLabels" map-name="uiLabelMap" global="true"/>
+                <set field="titleProperty" value="ProductAddItemsFromInventory"/>
+                <set field="headerItem" value="shipment"/>
+                <set field="tabButtonItem" value="AddItemsFromInventory"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/shipment/AddItemsFromInventory.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonShipmentDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/facility/AddItemsFromInventory.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+</screens>

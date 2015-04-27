@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-form.xsd">
+    <form name="FindOrder" type="single" target="findorder" title="" default-map-name="product"
+        header-row-style="header-row" default-table-style="basic-table" focus-field-name="productId">
+        <field name="noConditionFind"><hidden value="Y"/><!-- if this isn't there then with all fields empty no query will be done --></field>
+        <field name="orderId" title="${uiLabelMap.GrowErpOrderID}"><text-find/></field>
+        <field name="orderName"><text-find/></field>
+        <field name="roleTypeId"><hidden value="${roleTypeId}"/></field>
+        <field name="orderTypeId" id-name="orderTypeId" title="${uiLabelMap.GrowErpOrderType}" event="onchange" action="javascript: if($('#FindOrder_roleTypeId').val() == 'END_USER_CUSTOMER' || !$('#FindOrder_roleTypeId').val()){$('#FindOrder_roleTypeId').val('SUPPLIER_AGENT');}else{$('#FindOrder_roleTypeId').val('END_USER_CUSTOMER');}">
+            <drop-down>
+                <option key="SALES_ORDER" description="${uiLabelMap.OrderSalesOrder}"/>
+                <option key="PURCHASE_ORDER" description="${uiLabelMap.OrderPurchaseOrder}"/>
+            </drop-down>
+        </field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}">
+            <drop-down>
+                <option key="" description="${uiLabelMap.OrderAnyOrderStatus}"/>
+                <entity-options entity-name="StatusItem" description="${description}" key-field-name="statusId">
+                    <entity-constraint name="statusTypeId" operator="equals" value="ORDER_STATUS"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="partyId" title="${uiLabelMap.GrowErpOrderFrom}"><lookup target-form-name="LookupCustomerName"/></field>
+        <field name="orderDate" title="${uiLabelMap.OrderOrderDate}"><date-find/></field>
+        <field name="searchButton" title="${uiLabelMap.CommonFind}" widget-style="smallSubmit">
+            <submit button-type="button"/>
+        </field>
+    </form>
+    
+    <form name="ListOrder" list-name="listIt" target="" title="" type="list" paginate-target="findorder"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <set field="entityName" value="OrderHeaderAndRoles"/>
+            <set field="requestParameters.roleTypeId" value="${roleTypeId}"/>
+            <service service-name="performFind" result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields" from-field="requestParameters"/>
+                <field-map field-name="entityName" from-field="entityName"/>
+                <field-map field-name="orderBy" from-field="parameters.sortField"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <field name="orderId" title="${uiLabelMap.GrowErpOrderID}" sort-field="true">
+            <hyperlink also-hidden="false" description="${orderId}" target="orderview">
+                <parameter param-name="orderId"/>
+            </hyperlink>
+        </field>
+        <field name="orderName" sort-field="true"><display/></field>
+        <field name="orderTypeId" title="${uiLabelMap.GrowErpOrderType}" sort-field="true">
+            <display-entity entity-name="OrderType" description="${description}"/>
+        </field>
+        <!-- <field name="remainingSubTotal" title="${uiLabelMap.FormFieldTitle_remainingSubTotal}" sort-field="true"><display/></field> -->
+        <field name="grandTotal" title="${uiLabelMap.CommonAmount}" sort-field="true"><display type="currency" currency="${currencyUom}"/></field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}" sort-field="true">
+            <display-entity entity-name="StatusItem" description="${description}"/>
+        </field>
+        <field name="partyId" title="${uiLabelMap.GrowErpOrderFrom}" sort-field="true">
+            <display-entity entity-name="PartyNameView" key-field-name="partyId" description="${groupName} ${firstName} ${lastName}"/>
+        </field>
+        <field name="orderDate" title="${uiLabelMap.OrderOrderDate}" sort-field="true"><display/></field>
+    </form>
+    
+    <form name="CreateOrderEntry" type="single" target="initorderentry" title="" default-map-name="" 
+        header-row-style="header-row" default-table-style="basic-table">
+        <field name="finalizeMode"><hidden value="type"/></field>
+        <field name="productStoreId" title="${uiLabelMap.OrderProductStore}"><hidden value="${productStoreId}"/></field>
+        <field name="orderMode" title="${uiLabelMap.OrderOrderType}" required-field="true" event="onchange" action="jQuery('#CreateOrderEntry').attr('action','orderentry');jQuery('#CreateOrderEntry').submit();">
+            <drop-down allow-empty="false">
+                <option key="" description="${uiLabelMap.GrowErpSelectOrderType}"/>
+                <entity-options description="${description}" entity-name="OrderType" key-field-name="orderTypeId">
+                    <entity-order-by field-name="description"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="salesChannelEnumId" title="${uiLabelMap.OrderSalesChannel}" use-when="${parameters.orderMode == 'SALES_ORDER'}"><hidden value="WEB_SALES_CHANNEL"/></field>
+        <field name="billToCustomerPartyId" title="${uiLabelMap.OrderOrderEntryInternalOrganization}" use-when="${parameters.orderMode == 'PURCHASE_ORDER'}"><hidden value="${payToPartyId}"/></field>
+        <field name="userLoginId" title="${uiLabelMap.CommonUserLoginId}"><hidden value="${userLogin.partyId}"/></field>
+        <field name="partyId" title="${uiLabelMap.OrderCustomer}" use-when="${parameters.orderMode == 'SALES_ORDER'}"><lookup target-form-name="LookupCustomerName"/></field>
+        <field name="currencyUomId"><hidden value="${productStore.defaultCurrencyUomId}"/></field>
+        <field name="supplierPartyId" title="${uiLabelMap.ProductSupplier}" use-when="${parameters.orderMode == 'PURCHASE_ORDER'}">
+            <lookup target-form-name="LookupSupplier"></lookup>
+            <!-- <drop-down allow-empty="false">
+                <option key="" description="${uiLabelMap.OrderSelectSupplier}"/>
+                <entity-options entity-name="PartyRoleAndPartyDetail" key-field-name="partyId" description="${groupName} [${partyId}]">
+                    <entity-constraint name="roleTypeId"  value="SUPPLIER" operator="equals"/>
+                    <entity-order-by field-name="partyId"/>
+                </entity-options>
+            </drop-down> -->
+        </field>
+        <field name="submitButton" title="${uiLabelMap.CommonSubmit}" widget-style="buttontext"><submit button-type="button"/></field>
+    </form>
+    
+    <form name="OrderNewNote" target="createordernote" type="single">
+        <field name="orderId"><hidden/></field>
+        <field name="note" title="${uiLabelMap.OrderNote}"><textarea rows="5" cols="70"/></field>
+        <field name="internalNote" title="${uiLabelMap.OrderInternalNote}" tooltip="${uiLabelMap.OrderInternalNoteMessage}">
+            <drop-down allow-empty="true" no-current-selected-key="Y">
+                <option key="Y" description="${uiLabelMap.CommonYes}"/>
+                <option key="N" description="${uiLabelMap.CommonNo}"/>
+            </drop-down>
+        </field>
+        <field name="submitButton" title="${uiLabelMap.CommonSubmit}" widget-style="smallSubmit"><submit button-type="button"/></field>
+        <field name="backButton" title=" " widget-style="smallSubmit">
+            <hyperlink target="orderview?orderId=${orderId}" description="${uiLabelMap.GrowErpBackToOrder}"></hyperlink>
+        </field>
+    </form>
+    
+    <form name="FindReturns" type="single"  target="findreturn" title=""
+        header-row-style="header-row" default-table-style="basic-table">
+        <field name="returnHeaderTypeId" title="${uiLabelMap.GrowErpReturnType}">
+            <drop-down allow-empty="true">
+                <entity-options entity-name="ReturnHeaderType" description="${description}"/>
+            </drop-down>
+        </field>
+        <field name="returnId" title="${uiLabelMap.OrderReturnId}"><text-find/></field>
+        <field name="fromPartyId" title="${uiLabelMap.OrderReturnFromParty}">
+            <lookup target-form-name="LookupPartyName"/>
+        </field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}">
+            <drop-down allow-empty="true">
+                <entity-options entity-name="StatusItem" description="${description}">
+                    <entity-constraint name="statusTypeId" operator="equals" value="ORDER_RETURN_STTS"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="entryDate" title="${uiLabelMap.OrderEntryDate}">
+            <date-find/>
+        </field>
+        <field name="noConditionFind"><hidden value="Y"/><!-- if this isn't there then with all fields empty no query will be done --></field>
+        <field name="submitButton" title="${uiLabelMap.CommonFind}" widget-style="smallSubmit">
+            <submit button-type="button"/>
+        </field>
+    </form>
+    
+    <form name="ListReturns" type="list"  target="findreturn" title="" list-name="listIt" paginate-target="findreturn"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <service service-name="performFind"  result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields" from-field="requestParameters"/>
+                <field-map field-name="entityName" value="ReturnHeader"/>
+                <field-map field-name="orderBy" value="entryDate DESC"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <field name="returnId" title="${uiLabelMap.OrderReturnId}" sort-field="true">
+            <hyperlink description="${returnId}" target="returnhead">
+                <parameter param-name="returnId"/>
+            </hyperlink>
+        </field>
+        <field name="entryDate" title="${uiLabelMap.OrderEntryDate}" sort-field="true">
+            <display/>
+        </field>
+        <field name="fromPartyId" title="${uiLabelMap.OrderReturnFromParty}" sort-field="true">
+            <display-entity entity-name="PartyNameView" key-field-name="partyId" description="${groupName} ${firstName} ${lastName}">
+                <sub-hyperlink target="viewprofile" description="[${fromPartyId}]" target-type="inter-app">
+                    <parameter param-name="partyId" from-field="fromPartyId"/>
+                </sub-hyperlink>
+            </display-entity>
+        </field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}" sort-field="true">
+            <display-entity entity-name="StatusItem" key-field-name="statusId" description="${description}"/>
+        </field>
+    </form>
+    
+    <form name="EditReturn" type="single" target="updateReturn" default-map-name="returnHeader" id="editReturn"
+        header-row-style="header-row" default-table-style="basic-table">
+        <actions>
+            <entity-one entity-name="StatusItem" value-field="currentStatus" auto-field-map="false">
+                <field-map field-name="statusId" from-field="returnHeader.statusId"/>
+            </entity-one>
+        </actions>
+        <alt-target use-when="returnHeader==null" target="createReturn"/>
+        <auto-fields-service service-name="updateReturnHeader"/>
+        <field use-when="returnHeader!=null" name="returnId" tooltip="${uiLabelMap.OrderReturnCannotBeChanged}"><display/></field>
+        <field use-when="returnHeader==null&amp;&amp;returnId!=null" name="returnId" tooltip="${uiLabelMap.OrderReturnCannotBeFound} ${returnId}"><text size="20" maxlength="20"/></field>
+        <field use-when="returnHeader==null&amp;&amp;returnId==null" name="returnId"><ignored/></field>
+        <field name="returnHeaderTypeId" id-name="returnHeaderTypeId" title="${uiLabelMap.GrowErpReturnType}">
+            <drop-down allow-empty="false">
+                <entity-options entity-name="ReturnHeaderType" description="${description}"/>
+            </drop-down>
+        </field>
+        <field name="statusId" use-when="returnHeader==null" id-name="statusId">
+            <drop-down>
+                <entity-options entity-name="StatusItem" description="${description}">
+                    <entity-constraint name="statusTypeId" value="ORDER_RETURN_STTS"/>
+                    <entity-order-by field-name="sequenceId"/>
+                </entity-options>
+                <list-options key-name="statusIdTo" list-name="returnStatus" description="${transitionName}"/>
+            </drop-down>
+        </field>
+        <field name="statusId" use-when="returnHeader!=null">
+            <drop-down current-description="${currentStatus.description}">
+                <entity-options entity-name="StatusValidChangeToDetail" key-field-name="statusIdTo" description="${transitionName} (${description})">
+                    <entity-constraint name="statusId" env-name="returnHeader.statusId"/>
+                    <entity-order-by field-name="sequenceId"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="currencyUomId" use-when="returnHeader==null">
+            <drop-down no-current-selected-key="${defaultOrganizationPartyCurrencyUomId}">
+                <entity-options key-field-name="uomId" description="${description} - ${abbreviation}" entity-name="Uom">
+                    <entity-constraint name="uomTypeId" operator="equals" value="CURRENCY_MEASURE"/>
+                    <entity-order-by field-name="description"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="currencyUomId" use-when="returnHeader!=null">
+            <display-entity entity-name="Uom" key-field-name="uomId" description="${abbreviation} - ${description}"/>
+        </field>
+        <field name="destinationFacilityId" title="${uiLabelMap.GrowErpDestinationFacilityID}">
+            <drop-down>
+                <entity-options entity-name="Facility" key-field-name="facilityId" description="${facilityName}">
+                    <entity-order-by field-name="facilityName"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="fromPartyId" title="${uiLabelMap.FormFieldTitle_partyIdFrom}" required-field="true"><lookup target-form-name="LookupPartyName"/></field>
+        <field name="toPartyId" title="${uiLabelMap.FormFieldTitle_partyIdTo}" required-field="true"><lookup target-form-name="LookupPartyName"/></field>
+        <field name="originContactMechId" title="${uiLabelMap.GrowErpOriginContactMechID}" use-when="returnHeader==null"><text/></field>
+        <field name="originContactMechId" title="${uiLabelMap.GrowErpOriginContactMechID}" use-when="returnHeader!=null&amp;&amp;&quot;RETURN_REQUESTED&quot;.equals(returnHeader.getString(&quot;statusId&quot;))">
+            <drop-down allow-empty="true">
+                <list-options key-name="postalAddress.contactMechId" list-name="addresses" description="${postalAddress.toName} ${postalAddress.attnName} ${postalAddress.address1} ${postalAddress.address2} ${postalAddress.city} ${postalAddress.stateProvinceGeoId} ${postalAddress.postalCode} ${postalAddress.countryGeoId}"/>
+            </drop-down>
+        </field>
+        <field name="billingAccountId"><ignored/></field>
+        <field name="supplierRmaId"><ignored/></field>
+        <field name="finAccountId"><ignored/></field>
+        <field name="paymentMethodId"><ignored/></field>
+        <!-- <field name="newCreditCard" widget-style="buttontext" use-when="returnHeader!=null&amp;&amp;returnHeader.getString(&quot;fromPartyId&quot;)!=null">
+            <hyperlink also-hidden="false" target="editcreditcard" target-window="partymgr" description="${uiLabelMap.AccountingCreateNewCreditCard}" target-type="inter-app">
+                <parameter param-name="partyId" from-field="returnHeader.fromPartyId"/>
+            </hyperlink>
+        </field> -->
+        <field name="needsInventoryReceive" tooltip="${uiLabelMap.OrderReturnNecessaryReceiveInventoryMessage}">
+            <drop-down no-current-selected-key="N"><option key="N"/><option key="Y"/></drop-down>
+        </field>
+        <field name="createdBy" use-when="returnHeader==null"><ignored/></field>
+        <field name="createdBy" use-when="returnHeader!=null"><display/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonSubmit}" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+    
+    <form name="ReturnStatusHistory" type="list" list-name="orderReturnStatusHistories"
+            odd-row-style="alternate-row" header-row-style="header-row-2" default-table-style="basic-table hover-bar">
+        <field name="returnId" title="${uiLabelMap.OrderReturnId}"><display/></field>
+        <field name="returnItemSeqId" title="${uiLabelMap.GrowErpReturnItemSeqID}"><display/></field>
+        <field name="statusId"><display-entity entity-name="StatusItem" description="${description}"/></field>
+        <field name="statusDatetime" title="${uiLabelMap.CommonDate}"><display/></field>
+        <field name="changeByUserLoginId" title="${uiLabelMap.GrowErpModifiedByUserLoginID}"><display/></field>
+    </form>
+</forms>

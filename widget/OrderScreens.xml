@@ -1,0 +1,827 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<screens xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-screen.xsd">
+    <screen name="FindOrder">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderFindOrder"/>
+                <set field="headerItem" value="findorder"/>
+                <set field="roleTypeId" from-field="parameters.roleTypeId"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <decorator-screen name="FindScreenDecorator" location="component://common/widget/CommonScreens.xml">
+                                    <decorator-section name="search-options">
+                                        <include-form name="FindOrder" location="component://growerpbackend/widget/OrderForms.xml"/>
+                                    </decorator-section>
+                                    <decorator-section name="search-results">
+                                        <section>
+                                            <condition>
+                                                <if-empty field="roleTypeId"/>
+                                            </condition>
+                                            <widgets>
+                                                <section>
+                                                    <actions>
+                                                        <set field="roleTypeId" value="END_USER_CUSTOMER"/>
+                                                    </actions>
+                                                    <widgets>
+                                                        <include-form name="ListOrder" location="component://growerpbackend/widget/OrderForms.xml"/>
+                                                    </widgets>
+                                                </section>
+                                            </widgets>
+                                            <fail-widgets>
+                                                <include-form name="ListOrder" location="component://growerpbackend/widget/OrderForms.xml"/>
+                                            </fail-widgets>
+                                        </section>
+                                    </decorator-section>
+                                </decorator-screen>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+         </section>
+    </screen>
+    
+    <screen name="OrderList">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderOrderList"/>
+                <set field="headerItem" value="orderlist"/>
+                <set field="filterDate" type="Timestamp" from-field="parameters.filterDate"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/order/OrderList.groovy"/>
+                <!-- <script location="component://order/webapp/ordermgr/WEB-INF/actions/order/FilterOrderList.groovy"/> -->
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/order/FindOrders.groovy"/>
+                <!-- <script location="component://content/webapp/content/WEB-INF/actions/print/FindPrinters.groovy"/> -->
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/OrderList.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderEntry">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleOrderInits"/>
+                <set field="headerItem" value="orderentry"/><!-- this highlights the selected menu-item with name "main" -->
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/order/CheckInits.groovy"/>
+                <entity-one entity-name="WebSite" value-field="webSite"/>
+                <set field="productStoreId" from-field="webSite.productStoreId"/>
+                <entity-one entity-name="ProductStore" value-field="productStore">
+                    <field-map field-name="productStoreId" from-field="productStoreId"/>
+                </entity-one>
+                <set field="payToPartyId" from-field="productStore.payToPartyId"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.OrderOrderEntry}">
+                                    <include-form name="CreateOrderEntry" location="component://growerpbackend/widget/OrderForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+         </section>
+    </screen>
+    
+    <screen name="ShowCart">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleOrderShowCart"/>
+                <set field="productsummaryScreen" value="component://order/widget/ordermgr/OrderEntryCatalogScreens.xml#productsummary"/>
+                <property-to-field resource="order" property="orderPreference.giftEnable" field="giftEnable" default="Y"/>
+                <set field="promoUseDetailsInlineScreen" value="component://order/widget/ordermgr/OrderEntryCartScreens.xml#promoUseDetailsInline"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShowCart.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShowPromoText.groovy"/>
+                <entity-condition entity-name="ProductStorePromoAndAppl" list="allProductPromos" filter-by-date="true">
+                    <condition-list combine="and">
+                        <condition-expr field-name="manualOnly" value="Y"/>
+                        <condition-expr field-name="productStoreId" from-field="productStoreId"/>
+                    </condition-list>
+                    <order-by field-name="productPromoId"/>
+                </entity-condition>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderEntryDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific><html><html-template location="component://order/webapp/ordermgr/entry/cart/javascript.ftl"/></html></platform-specific>
+                        <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/ShowCart.ftl"/></html></platform-specific>
+                        <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/ShowCartItems.ftl"/></html></platform-specific>
+                        <platform-specific><html><html-template location="component://order/webapp/ordermgr/entry/cart/promoCodes.ftl"/></html></platform-specific>
+                        <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/PromoText.ftl"/></html></platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Product">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleProductPage"/>
+                <set field="showPriceDetails" value="Y" global="true"/>
+                <set field="configproductdetailScreen" value="component://order/widget/ordermgr/OrderEntryCatalogScreens.xml#configproductdetail"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/catalog/Product.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderEntryDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <not><if-empty field="product"/></not>
+                            </condition>
+                            <widgets>
+                                <include-screen name="ProductDetail"/>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h2">${uiLabelMap.ProductProductNotFound} ${productId}!</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ProductDetail">
+        <section>
+            <actions>
+                <set field="productsummaryScreen" value="component://order/widget/ordermgr/OrderEntryCatalogScreens.xml#productsummary"/>
+                <!-- Warning: this groovy file in the order component is slightly different from that of the ecommerce one (the currency is taken from the cart) -->
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/catalog/ProductDetail.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/catalog/SideDeepCategory.groovy"/>
+            </actions>
+            <widgets>
+                <!-- <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/EditProduct.ftl"/></html></platform-specific> -->
+                <!-- Warning: this ftl file in the order component is slightly different from that of the ecommerce one (the edit product link is shown) -->
+                <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/ProductDetail.ftl"/></html></platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ConfirmOrder">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderOrderConfirmation"/>
+                <set field="stepTitleId" value="OrderOrderConfirmation"/>
+                <set field="stepLabelId" value="OrderReviewOrder"/>
+                <property-to-field resource="order" property="orderPreference.giftEnable" field="giftEnable" default="Y"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/CheckoutReview.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderCheckoutDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://order/webapp/ordermgr/entry/order/orderheaderinfo.ftl"/></html>
+                        </platform-specific>
+                        <platform-specific>
+                            <html><html-template location="component://order/webapp/ordermgr/entry/order/orderpaymentinfo.ftl"/></html>
+                        </platform-specific>
+                        <platform-specific>
+                            <html><html-template location="component://order/webapp/ordermgr/entry/order/shipGroupConfirmSummary.ftl"/></html>
+                        </platform-specific>
+                        <platform-specific>
+                            <html><html-template location="component://order/webapp/ordermgr/entry/order/orderitems.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                  </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderLeftBar">
+        <section>
+            <widgets>
+                <include-screen name="OrderHeaderInfo"/>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderHeaderInfo">
+        <section>
+            <widgets>
+                <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/OrderHeaderInfo.ftl"/></html></platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="QuickFinalizeOrder">
+        <section>
+            <actions>
+                <set field="applicationMenuName" value="OrderAppBar" global="true"/>
+                <set field="headerItem" value="orderentry"/>
+                <set field="titleProperty" value="PageTitleCheckoutOptions"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/CheckoutPayment.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/CheckoutOptions.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/StorePaymentOptions.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShipSettings.groovy"/>
+                <property-to-field resource="order" property="orderPreference.giftEnable" field="giftEnable" default="Y"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="main-decorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <container>
+                            <label style="h1" text="${uiLabelMap.OrderQuickFinalizeOrder}"/>
+                        </container>
+                        <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/CheckoutOptions.ftl"/></html></platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderHeaderView">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderViewOrder"/>
+                <set field="headerItem" value="findorder"/>
+                <set field="layoutSettings.javaScripts[]" value="/ordermgr/images/js/order.js" global="true"/>
+                <set field="layoutSettings.javaScripts[]" value="/ordermgr/images/js/OrderShippingInfo.js" global="true"/>
+                <set field="layoutSettings.javaScripts[]" value="/ordermgr/images/js/geoAutoCompleter.js" global="true"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/order/OrderView.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/order/OrderViewWebSecure.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <include-screen name="OrderHeader"/>
+                        <container style="clear"/>
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/OrderItems.ftl"/></html>
+                        </platform-specific>
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/OrderNotes.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderHeader">
+        <section>
+            <condition>
+                <not><if-empty field="orderHeader"/></not>
+            </condition>
+            <widgets>
+                <container id="split50">
+                    <container style="lefthalf">
+                        <include-screen name="OrderInfo"/>
+                        <include-screen name="OrderPaymentInfo"/>
+                    </container>
+                    <container style="righthalf">
+                        <include-screen name="OrderContactInfo"/>
+                        <include-screen name="OrderShippingInfo"/>
+                    </container>
+                </container>
+            </widgets>
+            <fail-widgets>
+                <label style="h2" text="${uiLabelMap.OrderNoOrderFound}: [${orderId}]"></label>
+            </fail-widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderInfo">
+        <section>
+            <widgets>
+                <platform-specific>
+                    <html><html-template location="component://growerpbackend/webapp/backend/order/OrderInfo.ftl"/></html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderPaymentInfo">
+        <section>
+            <widgets>
+                <platform-specific>
+                    <html><html-template location="component://growerpbackend/webapp/backend/order/OrderPaymentInfo.ftl"/></html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderContactInfo">
+        <section>
+            <widgets>
+                <platform-specific>
+                    <html><html-template location="component://growerpbackend/webapp/backend/order/OrderContactInfo.ftl"/></html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderShippingInfo">
+        <section>
+            <widgets>
+                <platform-specific>
+                    <html><html-template location="component://growerpbackend/webapp/backend/order/OrderShippingInfo.ftl"/></html>
+                </platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderItemEdit">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderEditItems"/>
+                <set field="headerItem" value="findorder"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/order/OrderView.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/order/OrderViewWebSecure.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <include-screen name="OrderHeader"/>
+                        <container style="clear"/>
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/EditOrderItems.ftl"/></html>
+                        </platform-specific>
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/AppendOrderItem.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderReceivePayment">
+        <section>
+            <actions>
+                <set field="titleProperty" value="GrowErpReceiveOfflinePayment"/>
+                <set field="headerItem" value="findorders"/>
+                <script location="component://growerpbackend/webapp/backend/WEB-INF/actions/order/ReceivePayment.groovy"/>
+                <entity-and entity-name="OrderRole" list="orderRoles">
+                    <field-map field-name="orderId" value="${parameters.orderId}"/>
+                    <field-map field-name="roleTypeId" value="BILL_FROM_VENDOR"/>
+                </entity-and>
+                <entity-and entity-name="PaymentMethod" list="paymentMethods">
+                    <field-map field-name="partyId" from-field="orderRoles[0].partyId"/>
+                </entity-and>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderViewDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://order/webapp/ordermgr/order/receivepayment.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderNewNote">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderAddNote"/>
+                <set field="headerItem" value="findorder"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/order/NewNote.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <condition>
+                                <if-has-permission permission="ORDERMGR" action="_VIEW"/>
+                            </condition>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.OrderAddNote}">
+                                    <include-form name="OrderNewNote" location="component://growerpbackend/widget/OrderForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.OrderViewPermissionError}</label>
+                            </fail-widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderFindReturn">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderFindReturn"/>
+                <set field="viewIndex" from-field="parameters.VIEW_INDEX" type="Integer"/>
+                <set field="viewSize" from-field="parameters.VIEW_SIZE" type="Integer" default-value="20"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderReturnDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <decorator-screen name="FindScreenDecorator" location="component://common/widget/CommonScreens.xml">
+                            <decorator-section name="search-options">
+                                <include-form name="FindReturns" location="component://growerpbackend/widget/OrderForms.xml"/>
+                            </decorator-section>
+                            <decorator-section name="search-results">
+                                <include-form name="ListReturns" location="component://growerpbackend/widget/OrderForms.xml"/>
+                            </decorator-section>
+                        </decorator-screen>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderReturnHeader">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleReturnHeader"/>
+                <set field="tabButtonItem" value="OrderReturnHeader"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/ordermgr/images/js/return.js" global="true"/>
+                <property-to-field field="defaultCurrencyUomId" resource="general" property="currency.uom.id.default" default="USD"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnHeader.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderReturnDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <screenlet title="${uiLabelMap.OrderReturnHeader}">
+                                    <include-form name="EditReturn" location="component://growerpbackend/widget/OrderForms.xml"/>
+                                </screenlet>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderReturnItems">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleReturnItems"/>
+                <set field="tabButtonItem" value="OrderReturnItems"/>
+                <set field="parameters.orderId" from-field="parameters.orderIdReturn"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnItems.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderReturnDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <section>
+                            <widgets>
+                                <platform-specific>
+                                    <html>
+                                        <html-template location="component://growerpbackend/webapp/backend/order/ReturnItems.ftl"/>
+                                    </html>
+                                </platform-specific>
+                            </widgets>
+                        </section>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReceiveReturn">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleReturnItems"/>
+                <set field="tabButtonItem" value="OrderReturnItems"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/returns/ReceiveReturn.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderReturnDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/ReceiveReturn.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderQuickReturn">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleFindQuickReturn"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/QuickReturn.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderReturnDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/order/QuickReturn.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="OrderReturnHistory">
+        <section>
+            <actions>
+                <set field="titleProperty" value="OrderReturnHistory"/>
+                <set field="tabButtonItem" value="OrderReturnHistory"/>
+                <set field="returnId" from-field="parameters.returnId"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnItems.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderReturnDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <include-screen name="ReturnStatusHistory"/>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReturnStatusHistory">
+        <section>
+            <actions>
+                <entity-and entity-name="ReturnStatus" list="orderReturnStatusHistories">
+                    <field-map field-name="returnId"/>
+                </entity-and>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="orderReturnStatusHistories"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <screenlet id="ReturnStatusHistoryPanel" title="${uiLabelMap.OrderOrderReturn} ${uiLabelMap.CommonStatusHistory}">
+                            <include-form name="ReturnStatusHistory" location="component://growerpbackend/widget/OrderForms.xml"/>
+                        </screenlet>
+                    </widgets>
+                    <fail-widgets>
+                        <screenlet title="${uiLabelMap.OrderOrderReturn} ${uiLabelMap.CommonStatusHistory}">
+                            <label text="${uiLabelMap.OrderHistoryNotAvailable}"/>
+                        </screenlet>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReturnTypeHistory">
+        <section>
+            <actions>
+                <set field="entityField" value="returnTypeId"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnHistory.groovy"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="orderReturnItemHistories"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <screenlet id="ReturnTypeHistoryPanel" title="${uiLabelMap.OrderReturnTypeHistory}" collapsible="true">
+                            <include-form name="ReturnTypeHistory" location="component://order/widget/ordermgr/ReturnForms.xml"/>
+                        </screenlet>
+                    </widgets>
+                    <fail-widgets>
+                        <screenlet title="${uiLabelMap.OrderReturnTypeHistory}">
+                            <label text="${uiLabelMap.OrderHistoryNotAvailable}"/>
+                        </screenlet>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReturnReasonHistory">
+        <section>
+            <actions>
+                <set field="entityField" value="returnReasonId"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnHistory.groovy"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="orderReturnItemHistories"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <screenlet id="ReturnReasonHistoryPanel" title="${uiLabelMap.OrderReturnReasonHistory}" collapsible="true">
+                            <include-form name="ReturnReasonHistory" location="component://order/widget/ordermgr/ReturnForms.xml"/>
+                        </screenlet>
+                    </widgets>
+                    <fail-widgets>
+                        <screenlet title="${uiLabelMap.OrderReturnReasonHistory}">
+                            <label text="${uiLabelMap.OrderHistoryNotAvailable}"/>
+                        </screenlet>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReturnQuantityHistory">
+        <section>
+            <actions>
+                <set field="entityField" value="returnQuantity"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnHistory.groovy"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="orderReturnItemHistories"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <screenlet id="ReturnQuantityHistoryPanel" title="${uiLabelMap.OrderReturnQtyHistory}" collapsible="true">
+                            <include-form name="ReturnAndReceivedQuantityHistory" location="component://order/widget/ordermgr/ReturnForms.xml"/>
+                        </screenlet>
+                    </widgets>
+                    <fail-widgets>
+                        <screenlet title="${uiLabelMap.OrderReturnQtyHistory}">
+                            <label text="${uiLabelMap.OrderHistoryNotAvailable}"/>
+                        </screenlet>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReceivedQuantityHistory">
+        <section>
+            <actions>
+                <set field="entityField" value="receivedQuantity"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnHistory.groovy"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="orderReturnItemHistories"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <screenlet id="ReceivedQuantityHistoryPanel" title="${uiLabelMap.OrderReceivedQtyHistory}" collapsible="true">
+                            <include-form name="ReturnAndReceivedQuantityHistory" location="component://order/widget/ordermgr/ReturnForms.xml"/>
+                        </screenlet>
+                    </widgets>
+                    <fail-widgets>
+                        <screenlet title="${uiLabelMap.OrderReceivedQtyHistory}">
+                            <label text="${uiLabelMap.OrderHistoryNotAvailable}"/>
+                        </screenlet>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReturnPriceHistory">
+        <section>
+            <actions>
+                <set field="entityField" value="returnPrice"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/return/ReturnHistory.groovy"/>
+            </actions>
+            <widgets>
+                <section>
+                    <condition>
+                        <not>
+                            <if-empty field="orderReturnItemHistories"/>
+                        </not>
+                    </condition>
+                    <widgets>
+                        <screenlet id="ReturnPriceHistoryPanel" title="${uiLabelMap.OrderReturnPriceHistory}" collapsible="true">
+                            <include-form name="ReturnPriceHistory" location="component://order/widget/ordermgr/ReturnForms.xml"/>
+                        </screenlet>
+                    </widgets>
+                    <fail-widgets>
+                        <screenlet title="${uiLabelMap.OrderReturnPriceHistory}">
+                            <label text="${uiLabelMap.OrderHistoryNotAvailable}"/>
+                        </screenlet>
+                    </fail-widgets>
+                </section>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ShowAllPromotions">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleShowAllPromotions"/>
+                <set field="showPriceDetails" value="Y" global="true"/>
+                <set field="promoUseDetailsInlineScreen" value="component://growerpbackend/widget/OrderScreens.xml#PromoUseDetailsInline"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShowCart.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShowPromoText.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderEntryDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <screenlet>
+                            <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/ShowAllPromotions.ftl"/></html></platform-specific>
+                        </screenlet>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ShowPromotionDetails">
+        <section>
+            <actions>
+                <set field="titleProperty" value="PageTitleShowPromotionDetails"/>
+                <set field="showPriceDetails" value="Y" global="true"/>
+                <set field="productsummaryScreen" value="component://order/widget/ordermgr/OrderEntryCatalogScreens.xml#productsummary"/>
+                <set field="promoUseDetailsInlineScreen" value="component://growerpbackend/widget/OrderScreens.xml#PromoUseDetailsInline"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShowCart.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/ShowPromoText.groovy"/>
+                <script location="component://order/webapp/ordermgr/WEB-INF/actions/entry/cart/ShowPromotionDetails.groovy"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderEntryDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <screenlet>
+                            <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/ShowAllPromotions.ftl"/></html></platform-specific>
+                        </screenlet>
+                        <include-screen name="Promotion"/>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="Promotion">
+        <section>
+            <condition>
+                <not><if-empty field="productPromo"/></not>
+            </condition>
+            <widgets>
+                <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/PromotionDetails.ftl"/></html></platform-specific>
+                <!-- <platform-specific><html><html-template location="component://order/webapp/ordermgr/entry/cart/promotioncategories.ftl"/></html></platform-specific> -->
+                <!-- <platform-specific><html><html-template location="component://order/webapp/ordermgr/entry/cart/promotionproducts.ftl"/></html></platform-specific> -->
+            </widgets>
+            <fail-widgets>
+                <label text="${uiLabelMap.OrderErrorNoPromotionFoundWithID} [${productPromoId?if_exists}]" style="h2"/>
+            </fail-widgets>
+        </section>
+    </screen>
+    
+    <screen name="PromoUseDetailsInline">
+        <section>
+            <widgets>
+                <platform-specific><html><html-template location="component://growerpbackend/webapp/backend/order/PromoUseDetailsInline.ftl"/></html></platform-specific>
+            </widgets>
+        </section>
+    </screen>
+    
+    <screen name="ReceiveInventory">
+        <section>
+            <actions>
+                <set field="tabButtonItem" value="ReceiveInventory"/>
+                <script location="component://product/webapp/facility/WEB-INF/actions/inventory/ReceiveInventory.groovy"/>
+                <set field="facilityId" from-field="parameters.facilityId"/>
+                <entity-one entity-name="Facility" value-field="facility"/>
+                <property-map resource="ProductUiLabels" map-name="uiLabelMap"/>
+                <set field="title" value="${uiLabelMap.ProductReceiveInventory}"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/ordermgr/images/js/ConvertUom.js" global="true"/>
+            </actions>
+            <widgets>
+                <decorator-screen name="CommonOrderDecorator" location="${parameters.mainDecoratorLocation}">
+                    <decorator-section name="body">
+                        <platform-specific>
+                            <html><html-template location="component://growerpbackend/webapp/backend/facility/ReceiveInventory.ftl"/></html>
+                        </platform-specific>
+                    </decorator-section>
+                </decorator-screen>
+            </widgets>
+        </section>
+    </screen>
+</screens>

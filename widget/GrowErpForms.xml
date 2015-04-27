@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/widget-form.xsd">
+    <form name="SetupOrganizationLayer" type="upload" target="createOrganizationAndProduct" header-row-style="header-row" default-table-style="basic-table" focus-field-name="groupName">
+        <field name="USE_ADDRESS"><hidden value="${USE_ADDRESS}"/></field>
+        <field name="require_email"><hidden value="${require_email}"/></field>
+        <field name="groupName" title="${uiLabelMap.SetupOrganizationName}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="30" maxlength="60"/></field>
+        <field name="logoFile" title="${uiLabelMap.GrowErpCompanyLogo}"><file/></field>
+        <field use-when="require_email!=null" name="USER_EMAIL" title="${uiLabelMap.CommonEmail}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="60" maxlength="250"/></field>
+        <field use-when="require_email==null" name="USER_EMAIL" title="${uiLabelMap.CommonEmail}" widget-style="required" required-field="true"><text size="60" maxlength="250"/></field>
+        <field name="USER_EMAIL_ALLOW_SOL"><hidden value="Y"/></field>
+        <field name="currencyUomId" title="${uiLabelMap.GrowErpBaseCurrency}">
+            <drop-down allow-empty="true" no-current-selected-key="${defaultOrganizationPartyCurrencyUomId}">
+                <entity-options key-field-name="uomId" description="${description} - ${abbreviation}" entity-name="Uom">
+                    <entity-constraint name="uomTypeId" operator="equals" value="CURRENCY_MEASURE"/>
+                    <entity-order-by field-name="description"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        
+        <field name="localeString" title="${uiLabelMap.GrowErpBaseLanguage}">
+            <lookup target-form-name="LookupLocale"/>
+        </field>
+        <field name="countryGeoId" title="${uiLabelMap.GrowErpBaseCountry}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true">
+            <drop-down allow-empty="true" no-current-selected-key="${defaultCountryGeoId}">
+                <entity-options entity-name="Geo" key-field-name="geoId" description="${geoName} - ${geoId}">
+                    <entity-constraint name="geoTypeId" value="COUNTRY"/>
+                    <entity-order-by field-name="geoName"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="categorytTitle" title="${uiLabelMap.ProductCategory}" title-area-style="group-label"><display description=" " also-hidden="false"/></field>
+        <field name="categoryName" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="30" maxlength="60"/></field>
+        <field name="productTitle" title="${uiLabelMap.ProductProduct}" title-area-style="group-label"><display description=" " also-hidden="false"/></field>
+        <field name="productTypeId"><hidden value="FINISHED_GOOD"/></field>
+        <field name="productCategoryTypeId"><hidden value="CATALOG_CATEGORY"/></field>
+        <field name="productName" title="${uiLabelMap.ProductProductName}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="30" maxlength="60"/></field>
+        <field name="uploadedFile" title="${uiLabelMap.CommonImage}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><file/></field>
+        <field name="description" title="${uiLabelMap.ProductShortDescription}"><text size="60" maxlength="250"/></field>
+        <field name="defaultPrice" title="${uiLabelMap.GrowErpActualPrice}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="8"/></field>
+        <field name="listPrice" title="${uiLabelMap.ProductListPrice}"><text size="8"/></field>
+        <field name="customerTitle" title="${uiLabelMap.SetupFirstCustomer}" title-area-style="group-label"><display description=" " also-hidden="false"/></field>
+        <field name="CUSTOMER_TITLE" title="${uiLabelMap.CommonTitle}"><text size="10" maxlength="30"/></field>
+        <field name="CUSTOMER_FIRST_NAME" title="${uiLabelMap.PartyFirstName}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="30" maxlength="60"/></field>
+        <field name="CUSTOMER_LAST_NAME" title="${uiLabelMap.PartyLastName}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="30" maxlength="60"/></field>
+        <field use-when="require_email!=null" name="CUSTOMER_EMAIL" title="${uiLabelMap.CommonEmail}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="60" maxlength="250"/></field>
+        <field use-when="require_email==null" name="CUSTOMER_EMAIL" title="${uiLabelMap.CommonEmail}" widget-style="required"><text size="60" maxlength="250"/></field>
+        <field name="CUSTOMER_EMAIL_ALLOW_SOL"><hidden value="Y"/></field>
+        <field use-when="displayPassword!=null" name="USERNAME" title="${uiLabelMap.CommonUsername}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><text size="30" maxlength="250"/></field>
+        <field use-when="displayPassword!=null" name="PASSWORD" title="${uiLabelMap.CommonPassword}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required" required-field="true"><password size="15" maxlength="250"/></field>
+        <field use-when="displayPassword!=null" name="CONFIRM_PASSWORD" title="${uiLabelMap.CommonPassword}" tooltip="* ${uiLabelMap.CommonConfirm}" widget-style="required"><password size="15" maxlength="250"/></field>
+        <field name="USERNAME" title="${uiLabelMap.CommonUsername}" tooltip="* ${uiLabelMap.PartyTemporaryPassword}" widget-style="required"><text size="30" maxlength="250"/></field>
+        <field name="submitButton" title="${uiLabelMap.CommonSave}" widget-style="smallSubmit" ><submit button-type="button"/></field>
+    </form>
+    
+    <form name="NewCustomer" type="single" target="${target}${previousParams}"
+        focus-field-name="USER_TITLE" header-row-style="header-row" default-table-style="basic-table">
+        <field name="USE_ADDRESS"><hidden value="${USE_ADDRESS}"/></field>
+        <field name="require_email"><hidden value="${require_email}"/></field>
+        <field name="USER_FIRST_NAME" title="${uiLabelMap.PartyFirstName}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="30" maxlength="60"/></field>
+        <field name="USER_LAST_NAME" title="${uiLabelMap.PartyLastName}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="30" maxlength="60"/></field>
+        <field name="ShippingAddressTitle" title="${uiLabelMap.PartyAddressMailingShipping}" title-area-style="group-label"><display description=" " also-hidden="false"/></field>
+        <field name="USER_ADDRESS1" title="${uiLabelMap.CommonAddress1}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="30" maxlength="60"/></field>
+        <field name="USER_ADDRESS2" title="${uiLabelMap.CommonAddress2}"><text size="30" maxlength="60"/></field>
+        <field name="USER_CITY" title="${uiLabelMap.CommonCity}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="30" maxlength="60"/></field>
+        <field name="USER_STATE" title="${uiLabelMap.CommonState}" widget-style="required"><drop-down allow-empty="false"/></field>                       
+        <field name="USER_POSTAL_CODE" title="${uiLabelMap.CommonZipPostalCode}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="10" maxlength="30"/></field>
+        <field name="USER_COUNTRY" title="${uiLabelMap.CommonCountry}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required">
+            <drop-down no-current-selected-key="${defaultCountryGeoId}">
+                <entity-options entity-name="Geo" key-field-name="geoId" description="${geoId}: ${geoName}">
+                    <entity-constraint name="geoTypeId" value="COUNTRY"/>
+                    <entity-order-by field-name="geoId"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="USER_ADDRESS_ALLOW_SOL" title="${uiLabelMap.PartyContactAllowAddressSolicitation}?">
+            <drop-down allow-empty="true"><option key="Y" description="${uiLabelMap.CommonY}"/><option key="N" description="${uiLabelMap.CommonN}"/></drop-down>
+        </field>
+        <field name="HomePhoneTitle" title="${uiLabelMap.PartyHomePhone}" title-area-style="group-label" widget-style="tooltip"><display description="${uiLabelMap.PartyPhoneNumberRequired}" also-hidden="false"/></field>
+        <field name="USER_HOME_COUNTRY" title="${uiLabelMap.CommonCountryCode}"><text size="4" maxlength="10"/></field>
+        <field name="USER_HOME_AREA" title="${uiLabelMap.PartyAreaCode}"><text size="4" maxlength="10"/></field>
+        <field name="USER_HOME_CONTACT" title="${uiLabelMap.PartyPhoneNumber}"><text size="15" maxlength="15"/></field>
+        <field name="USER_HOME_EXT" title="${uiLabelMap.PartyContactExt}"><text size="6" maxlength="10"/></field>
+        <field name="MobilePhoneTitle" title="${uiLabelMap.PartyContactMobilePhoneNumber}" title-area-style="group-label"><display description=" " also-hidden="false"/></field>
+        <field name="USER_MOBILE_COUNTRY" title="${uiLabelMap.CommonCountryCode}"><text size="4" maxlength="10"/></field>
+        <field name="USER_MOBILE_AREA" title="${uiLabelMap.PartyAreaCode}"><text size="4" maxlength="10"/></field>
+        <field name="USER_MOBILE_CONTACT" title="${uiLabelMap.PartyPhoneNumber}"><text size="15" maxlength="15"/></field>
+        <field name="EmailAddressTitle" title="${uiLabelMap.PartyEmailAddress}" title-area-style="group-label"><display description=" " also-hidden="false"/></field>
+        <field use-when="require_email!=null" name="USER_EMAIL" title="${uiLabelMap.CommonEmail}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="60" maxlength="250"/></field>
+        <field use-when="require_email==null" name="USER_EMAIL" title="${uiLabelMap.CommonEmail}" widget-style="required"><text size="60" maxlength="250"/></field>
+        <field use-when="displayPassword!=null" name="USERNAME" title="${uiLabelMap.CommonUsername}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><text size="30" maxlength="250"/></field>
+        <field use-when="displayPassword!=null" name="PASSWORD" title="${uiLabelMap.CommonPassword}" tooltip="${uiLabelMap.CommonRequired}" widget-style="required"><password size="15" maxlength="250"/></field>
+        <field use-when="displayPassword!=null" name="CONFIRM_PASSWORD" title="${uiLabelMap.CommonPassword}" tooltip="* ${uiLabelMap.CommonConfirm}" widget-style="required"><password size="15" maxlength="250"/></field>
+        <field name="USERNAME" title="${uiLabelMap.CommonUsername}" tooltip="* ${uiLabelMap.PartyTemporaryPassword}" widget-style="required"><text size="30" maxlength="250"/></field>
+        <field name="PRODUCT_STORE_ID" title="Product Store">
+            <drop-down>
+                <entity-options entity-name="ProductStore" key-field-name="productStoreId" description="${storeName} (${productStoreId})">
+                    <entity-order-by field-name="productStoreId"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="submitButton" title="${uiLabelMap.CommonSave}" widget-style="smallSubmit"><submit button-type="text-link"/></field>
+    </form>
+    
+    <form name="numberOfProducts" type="single">
+        <field name="numberOfProducts" title=" ">
+            <display description="${numberOfProducts} items"/>
+        </field>
+    </form>
+    
+    <form name="numberOfCustomers" type="single">
+        <field name="partyRoleCount" title=" ">
+            <display description="${partyRoleCount} persons"/>
+        </field>
+    </form>
+    
+    <form name="mostPopularProducts" type="list" paginate="false" list-name="bestSellingProducts" view-size="5"
+            header-row-style="header-row" odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <field name="productName" title="${uiLabelMap.ProductName}"><display description="${productName}"/></field>
+        <field name="amount"><display type="currency"/></field>
+        <field name="qtyOrdered" title="${uiLabelMap.OrderQtyOrdered}"><display/></field>
+    </form>
+    
+    <form name="topTenOrdering" type="list" paginate="false" list-name="orderingList" view-size="10"
+            header-row-style="header-row" odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <field name="partyId" title="${uiLabelMap.GrowErpCustomerName}">
+            <display-entity entity-name="PartyNameView" description="${firstName} ${middleName} ${lastName} ${groupName}"/>
+        </field>
+        <field name="orderType"><display/></field>
+        <field name="sizeOrdered" title="${uiLabelMap.GrowErpNumberOfOrders}"><display description="${orderSize}"/></field>
+        <field name="totalOrderAmount" title="${uiLabelMap.GrowErpTotalOrderAmount}"><display type="currency"/></field>
+    </form>
+    
+    <form name="salesDay" type="single">
+        <field name="revenueDay" title="${uiLabelMap.GrowErpRevenue}" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="expensesDay" title="${uiLabelMap.GrowErpExpenses}" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowDay" title="${uiLabelMap.GrowErpProfitAndCashflow}" position="1">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="salesWeek" type="single">
+        <field name="revenueWeek" title="${uiLabelMap.GrowErpRevenue}" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="expensesWeek" title="${uiLabelMap.GrowErpExpenses}" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowWeek" title="${uiLabelMap.GrowErpProfitAndCashflow}" position="1">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="salesMonth" type="single">
+        <field name="revenueMonth" title="${uiLabelMap.GrowErpRevenue}" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="expensesMonth" title="${uiLabelMap.GrowErpExpenses}" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowMonth" title="${uiLabelMap.GrowErpProfitAndCashflow}" position="1">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="salesYear" type="single">
+        <field name="revenueYear" title="${uiLabelMap.GrowErpRevenue}" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="expensesYear" title="${uiLabelMap.GrowErpExpenses}" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowYear" title="${uiLabelMap.GrowErpProfitAndCashflow}" position="1">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="salesRevenue" type="single">
+        <field name="revenueDay" title="Day" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="revenueWeek" title="Week" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="revenueMonth" title="Month" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="revenueYear" title="Year" position="2">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="showExpenses" type="single">
+        <field name="expensesDay" title="Day" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="expensesWeek" title="Week" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="expensesMonth" title="Month" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="expensesYear" title="Year" position="2">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="showProfitAndCashflow" type="single">
+        <field name="profitAndCashflowDay" title="Day" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowWeek" title="Week" position="2">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowMonth" title="Month" position="1">
+            <display type="currency"/>
+        </field>
+        <field name="profitAndCashflowYear" title="Year" position="2">
+            <display type="currency"/>
+        </field>
+    </form>
+    
+    <form name="ListWebSites" target="" title="" type="list" list-name="webSites" paginate-target="ListWebsites" paginate="true"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <set field="parameters.sortField" from-field="parameters.sortField" default-value="-webSiteId"/>
+            <entity-condition entity-name="WebSite" list="webSites">
+                <order-by field-name="${parameters.sortField}"/>
+            </entity-condition>
+        </actions>
+        <field name="webSiteId" title="${uiLabelMap.CommonId}" widget-style="buttontext" sort-field="true">
+            <hyperlink description="${webSiteId}" target="CMSMain" also-hidden="false">
+                <parameter param-name="webSiteId"/>
+            </hyperlink>
+        </field>
+        <field name="siteName" title="${uiLabelMap.CommonName}" sort-field="true"><display/></field>
+        <field name="httpHost" sort-field="true"><display/></field>
+    </form>
+    
+    <form name="ListWebSites" target="" title="" type="list" list-name="webSites" paginate-target="ListWebsites" paginate="true"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <set field="parameters.sortField" from-field="parameters.sortField" default-value="-webSiteId"/>
+            <entity-condition entity-name="WebSite" list="webSites">
+                <order-by field-name="${parameters.sortField}"/>
+            </entity-condition>
+        </actions>
+        <field name="webSiteId" title="${uiLabelMap.CommonId}" widget-style="buttontext" sort-field="true">
+            <hyperlink description="${webSiteId}" target="CMSMain" also-hidden="false">
+                <parameter param-name="webSiteId"/>
+            </hyperlink>
+        </field>
+        <field name="siteName" title="${uiLabelMap.CommonName}" sort-field="true"><display/></field>
+        <field name="httpHost" sort-field="true"><display/></field>
+    </form>
+    
+    <form name="ListInvoice" target="" title="" type="list" list-name="listIt" odd-row-style="alternate-row" 
+        default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <entity-condition entity-name="Invoice" list="listIt">
+                <condition-expr field-name="statusId" operator="not-equals" value="INVOICE_PAID"/>
+            </entity-condition>
+        </actions>
+        <row-actions>
+            <set field="partyIdFrom" from-field="partyIdFrom" default-value="_NA_"/>
+            <service service-name="getPartyNameForDate" result-map="partyNameResultFrom">
+                <field-map field-name="partyId" from-field="partyIdFrom"/>
+                <field-map field-name="compareDate" from-field="invoiceDate"/>
+                <field-map field-name="lastNameFirst" value="Y"/>
+            </service>
+            <service service-name="getPartyNameForDate" result-map="partyNameResultTo">
+                <field-map field-name="partyId" from-field="partyId"/>
+                <field-map field-name="compareDate" from-field="invoiceDate"/>
+                <field-map field-name="lastNameFirst" value="Y"/>
+            </service>
+            <set field="amountToApply" value="${bsh:org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceNotApplied(delegator,invoiceId)
+                .multiply(org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceCurrencyConversionRate(delegator,invoiceId))}"/>
+            <set field="amount" value="${bsh:org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceTotal(delegator,invoiceId)
+                .multiply(org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceCurrencyConversionRate(delegator,invoiceId))}"/>
+            <set field="currencyUomId" from-field="defaultOrganizationPartyCurrencyUomId"/>
+        </row-actions>
+        <field name="invoiceId" title="${uiLabelMap.GrowErpInvoiceNumber}" sort-field="true"><display/></field>
+        <field name="description" title="${uiLabelMap.CommonDescription}" sort-field="true"><display/></field>
+        <field name="invoiceTypeId" title="${uiLabelMap.FormFieldTitle_saleInvoiceTypeId}" sort-field="true">
+            <display-entity entity-name="InvoiceType" description="${description}"/>
+        </field>
+        <field name="amount" title="${uiLabelMap.AccountingAmount}" sort-field="true"><display type="currency" currency="${currencyUomId}"/></field>
+        <field name="supplier" title="${uiLabelMap.ProductSupplier}" sort-field="true"><display description="${partyNameResultFrom.fullName}"/></field>
+        <field name="customer" title="${uiLabelMap.AccountingCustomer}" sort-field="true"><display description="${partyNameResultTo.fullName}"/></field>
+    </form>
+    
+    <form name="ViewPartyPerson" type="single" default-map-name="lookupPerson" >
+        <field name="name" title="${uiLabelMap.PartyName}"><display description="${lookupPerson.personalTitle} ${lookupPerson.firstName} ${lookupPerson.middleName} ${lookupPerson.lastName}"/></field>
+    </form>
+    
+    <form name="ListOrder" list-name="listIt" target="" title="" type="list" paginate-target="orderlist"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar" header-row-style="header-row-2">
+        <actions>
+            <set field="entityName" value="OrderHeader"/>
+            <service service-name="performFind" result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields.createdBy" from-field="parameters.partyId"/>
+                <field-map field-name="entityName" from-field="entityName"/>
+            </service>
+        </actions>
+        <field name="orderId"><display/></field>
+        <field name="orderName"><display/></field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}">
+            <display-entity entity-name="StatusItem" description="${description}"/>
+        </field>
+    </form>
+    
+    <form name="ListInvoices" type="list" separate-columns="true" title="Invoice List" list-name="listIt" target="" default-entity-name="Invoice" paginate-target="findInvoices"
+        odd-row-style="alternate-row" header-row-style="header-row-2" default-table-style="basic-table hover-bar">
+        <actions>
+            <set field="parameters.sortField" from-field="parameters.sortField" default-value="-invoiceDate"/>
+            <service service-name="performFind" result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields" from-field="parameters"/>
+                <field-map field-name="entityName" value="InvoiceAndType"/>
+                <field-map field-name="orderBy" from-field="parameters.sortField"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <row-actions>
+            <service service-name="getPartyNameForDate" result-map="partyNameResultFrom">
+                <field-map field-name="partyId" from-field="partyIdFrom"/>
+                <field-map field-name="compareDate" from-field="invoiceDate"/>
+                <field-map field-name="lastNameFirst" value="Y"/>
+            </service>
+            <service service-name="getPartyNameForDate" result-map="partyNameResultTo">
+                <field-map field-name="partyId" from-field="partyId"/>
+                <field-map field-name="compareDate" from-field="invoiceDate"/>
+                <field-map field-name="lastNameFirst" value="Y"/>
+            </service>
+            <set field="amountToApply" value="${bsh:org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceNotApplied(delegator,invoiceId)
+                .multiply(org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceCurrencyConversionRate(delegator,invoiceId))}"/>
+            <set field="total" value="${bsh:org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceTotal(delegator,invoiceId)
+                .multiply(org.ofbiz.accounting.invoice.InvoiceWorker.getInvoiceCurrencyConversionRate(delegator,invoiceId))}"/>
+            <set field="currencyUomId" from-field="defaultOrganizationPartyCurrencyUomId"/>
+        </row-actions>
+        <field name="invoiceId" widget-style="buttontext"><display/></field>
+        <field name="invoiceDate"><display type="date"/></field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}"><display-entity entity-name="StatusItem"/></field>
+    </form>
+    
+    <form name="ListPayments" type="list" separate-columns="true" default-entity-name="Payment" list-name="listIt" paginate-target="findPayments" paginate="true"
+        odd-row-style="alternate-row" header-row-style="header-row-2" default-table-style="basic-table hover-bar">
+        <actions>
+            <service service-name="performFind" result-map="result" result-map-list="listIt">
+                <field-map field-name="inputFields.partyIdFrom" from-field="parameters.partyId"/>
+                <field-map field-name="entityName" value="PaymentAndTypeAndCreditCard"/>
+                <field-map field-name="orderBy" value="effectiveDate DESC"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <row-actions>
+            <set field="amountToApply" value="${bsh:org.ofbiz.accounting.payment.PaymentWorker.getPaymentNotApplied(delegator,paymentId);}"/>
+        </row-actions>
+        <field name="paymentId" widget-style="buttontext"><display/></field>
+        <field name="statusId" title="${uiLabelMap.CommonStatus}"><display-entity entity-name="StatusItem"/></field>
+        <field name="effectiveDate"><display/></field>
+        <field name="amount"><display also-hidden="false" type="currency" currency="${currencyUomId}"/></field>
+    </form>
+    
+    <form name="ListFindSubscription" target="" type="list" list-name="listIt"
+        header-row-style="header-row-2" odd-row-style="alternate-row" default-table-style="basic-table hover-bar"
+        paginate-target="FindSubscription" paginate="true">
+        <actions>
+            <service service-name="performFind" result-map-list="listIt" result-map="performFindResult">
+                <field-map field-name="inputFields" from-field="parameters"/>
+                <field-map field-name="entityName" value="Subscription"/>
+                <field-map field-name="viewIndex" from-field="viewIndex"/>
+                <field-map field-name="viewSize" from-field="viewSize"/>
+            </service>
+        </actions>
+        <auto-fields-entity entity-name="Subscription" default-field-type="display"/>
+        <field name="subscriptionResourceId"><ignored/></field>
+        <field name="subscriptionTypeId" title="${uiLabelMap.ProductSubscriptionType}"><ignored/></field>
+        <field name="originatedFromPartyId"><ignored/></field>
+        <field name="originatedFromRoleTypeId"><ignored/></field>
+        <field name="partyId"><ignored/></field>
+        <field name="roleTypeId"><ignored/></field>
+        <field name="orderId" widget-style="buttontext"><ignored/></field>
+        <field name="productId"><display-entity entity-name="Product" description="${productName}"/></field>
+        <field name="productCategoryId"><ignored/></field>
+        <field name="orderItemSeqId"><ignored/></field>
+        <field name="description"><ignored/></field>
+        <field name="subscriptionResourceId"><ignored/></field>
+        <field name="externalSubscriptionId"><ignored/></field>
+        <field name="automaticExtend"><ignored/></field>
+        <field name="roleTypeId"><ignored/></field>
+        <field name="canclAutmExtTimeUomId"><ignored/></field>
+        <field name="canclAutmExtTime"><ignored/></field>
+        <field name="originatedFromPartyId"><ignored/></field>
+        <field name="originatedFromRoleTypeId"><ignored/></field>
+        <field name="contactMechId"><ignored/></field>
+        <field name="communicationEventId"><ignored/></field>
+        <field name="productCategoryId"><ignored/></field>
+        <field name="inventoryItemId"><ignored/></field>
+        <field name="availableTime"><ignored/></field>
+        <field name="availableTimeUomId"><ignored/></field>
+        <field name="partyNeedId"><ignored/></field>
+        <field name="needTypeId"><ignored/></field>
+        <field name="useCountLimit"><ignored/></field>
+        <field name="maxLifeTime"><ignored/></field>
+        <field name="maxLifeTimeUomId"><ignored/></field>
+        <field name="maxUseTimeUomId"><ignored/></field>
+        <field name="useTime"><ignored/></field>
+        <field name="useTimeUomId"><ignored/></field>
+        <field name="purchaseFromDate"><ignored/></field>
+        <field name="purchaseThruDate"><ignored/></field>
+        <field name="subscriptionId" widget-style="buttontext"><display description="${subscriptionId}"/></field>
+    </form>
+    
+    <form name="SettingConfiguration" type="single" target="updateConfiguration" header-row-style="header-row" default-table-style="basic-table">
+        <field name="visualThemeId" title="${uiLabelMap.CommonVisualTheme}">
+            <drop-down allow-empty="true" current="selected">
+                <entity-options entity-name="VisualTheme" description="${visualThemeId}" key-field-name="visualThemeId">
+                    <entity-constraint name="visualThemeSetId" value="BACKOFFICE"/>
+                    <entity-order-by field-name="visualThemeId"/>
+                </entity-options>
+            </drop-down>
+        </field>
+        <field name="subscriptionEnabled" title="${uiLabelMap.GrowErpEnableSubscription}">
+            <drop-down allow-empty="false" current="selected">
+                <option key="Y" description="${uiLabelMap.CommonY}"/>
+                <option key="N" description="${uiLabelMap.CommonN}"/>
+            </drop-down>
+        </field>
+        <field name="fixedAssetEnabled" title="${uiLabelMap.GrowErpEnableFixedAssets}">
+            <drop-down allow-empty="false" current="selected">
+                <option key="Y" description="${uiLabelMap.CommonY}"/>
+                <option key="N" description="${uiLabelMap.CommonN}"/>
+            </drop-down>
+        </field>
+        <field name="webtoolsEnabled" title="${uiLabelMap.GrowErpEnableWebtools}">
+            <drop-down allow-empty="false" current="selected">
+                <option key="Y" description="${uiLabelMap.CommonY}"/>
+                <option key="N" description="${uiLabelMap.CommonN}"/>
+            </drop-down>
+        </field>
+        <field name="tenantmgrEnabled" title="${uiLabelMap.GrowErpEnableTenantmgr}">
+            <drop-down allow-empty="false" current="selected">
+                <option key="Y" description="${uiLabelMap.CommonY}"/>
+                <option key="N" description="${uiLabelMap.CommonN}"/>
+            </drop-down>
+        </field>
+        <field name="uomConversionEnabled" title="${uiLabelMap.GrowErpEnableForeignExchangeRates}">
+            <drop-down allow-empty="false" current="selected">
+                <option key="Y" description="${uiLabelMap.CommonY}"/>
+                <option key="N" description="${uiLabelMap.CommonN}"/>
+            </drop-down>
+        </field>
+        <field name="useLinkedin" title="${uiLabelMap.GrowErpEnableLinkedin}">
+            <drop-down allow-empty="false" current="selected">
+                <option key="Y" description="${uiLabelMap.CommonY}"/>
+                <option key="N" description="${uiLabelMap.CommonN}"/>
+            </drop-down>
+        </field>
+        <field name="submitButton" title="${uiLabelMap.CommonSave}" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+</forms>
